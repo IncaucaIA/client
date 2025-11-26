@@ -51,7 +51,7 @@ class WebSocketDatasourceImpl implements WebSocketDatasource {
   Future<String> _getClientUrl() async {
     try {
       final response = await httpClient.get(
-        Uri.parse(AzureConfig.negotiateEndpoint),
+        Uri.parse(AzureConfig.apiBaseUrl + AzureConfig.negotiateEndpoint),
       );
 
       if (response.statusCode == 200) {
