@@ -3,12 +3,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import 'package:incauca_labs/core/colors.dart'; 
+import 'package:incauca_labs/core/colors.dart';
 import 'bloc/upload_bloc.dart';
 import 'bloc/upload_event.dart';
 import 'bloc/upload_state.dart';
 
-// PÁGINA DE DETALLE (Placeholder temporal para que funcione la navegación)
+class LocalNotification {
+  final String message;
+  final DateTime timestamp;
+  bool isRead;
+
+  LocalNotification({
+    required this.message, 
+    required this.timestamp, 
+    this.isRead = false
+  });
+}
+
 class ResultDetailView extends StatelessWidget {
   const ResultDetailView({super.key});
   @override
@@ -30,9 +41,11 @@ class UploadView extends StatefulWidget {
 class _UploadViewState extends State<UploadView> {
   final ImagePicker _picker = ImagePicker();
   
-  // Lista de notificaciones
-  final List<String> _notifications = [];
-  int _unreadNotifications = 0;
+  // Usamos la nueva clase en lugar de String
+  final List<LocalNotification> _notifications = [];
+  
+  // Getter para calcular no leídas dinámicamente
+  int get _unreadCount => _notifications.where((n) => !n.isRead).length;
 
   @override
   void initState() {
@@ -63,7 +76,6 @@ class _UploadViewState extends State<UploadView> {
     }
   }
 
-  // Navegación al detalle
   void _navigateToDetail() {
     Navigator.push(
       context,
@@ -71,16 +83,20 @@ class _UploadViewState extends State<UploadView> {
     );
   }
 
-  // Modal de Notificaciones Mejorado
+  // --- MODAL DE NOTIFICACIONES ---
   void _showNotificationsModal() {
+    // Al abrir el modal, marcamos todas como leídas visualmente tras un pequeño delay
+    // o simplemente las mostramos. Si quieres que al abrir se marquen todas:
     setState(() {
-      _unreadNotifications = 0; 
+       for (var n in _notifications) {
+         n.isRead = true;
+       }
     });
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: true, 
+      isScrollControlled: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
         decoration: const BoxDecoration(
@@ -100,7 +116,7 @@ class _UploadViewState extends State<UploadView> {
                   const Text(
                     'Resultados de Análisis',
                     style: TextStyle(
-                      fontSize: 18, 
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary
                     ),
@@ -118,7 +134,7 @@ class _UploadViewState extends State<UploadView> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.analytics_outlined, 
+                          Icon(Icons.analytics_outlined,
                                size: 60, color: Colors.grey.shade300),
                           const SizedBox(height: 16),
                           Text(
@@ -129,29 +145,51 @@ class _UploadViewState extends State<UploadView> {
                       ),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(0), // Padding controlado en items
                       itemCount: _notifications.length,
-                      separatorBuilder: (_, __) => const Divider(),
+                      separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.secondary.withOpacity(0.1),
-                            child: const Icon(Icons.check_circle_outline, color: AppColors.secondary),
+                        final notification = _notifications[index];
+                        return Container(
+                          // Fondo sutil si no está leída (por si abrimos modal sin marcar todo)
+                          color: notification.isRead ? Colors.transparent : AppColors.primary.withOpacity(0.05),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.secondary.withOpacity(0.1),
+                              child: const Icon(Icons.check_circle_outline, color: AppColors.secondary),
+                            ),
+                            title: Text(
+                              'Análisis completado',
+                              style: TextStyle(
+                                fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                                color: AppColors.dark,
+                              ),
+                            ),
+                            subtitle: Text(
+                              notification.message,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: notification.isRead ? Colors.grey : AppColors.dark,
+                              ),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "${notification.timestamp.hour}:${notification.timestamp.minute.toString().padLeft(2, '0')}",
+                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 4),
+                                const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
+                              ],
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _navigateToDetail();
+                            },
                           ),
-                          title: const Text(
-                            'Análisis completado',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            _notifications[index], // Mensaje del servidor
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                          onTap: () {
-                            Navigator.pop(context); // Cerrar modal
-                            _navigateToDetail(); // Ir al detalle
-                          },
                         );
                       },
                     ),
@@ -166,7 +204,7 @@ class _UploadViewState extends State<UploadView> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        // LISTENER 1: FEEDBACK DE SUBIDA INICIAL
+        // LISTENER 1: FEEDBACK DE SUBIDA INICIAL (Igual que antes)
         BlocListener<UploadBloc, UploadState>(
           listenWhen: (prev, curr) => prev.uploadStatus != curr.uploadStatus,
           listener: (context, state) {
@@ -174,14 +212,13 @@ class _UploadViewState extends State<UploadView> {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  // Mensaje formal, largo y descriptivo
                   content: Text(
                     'La imagen fue subida correctamente e inició el procesamiento. En breve se le notificará cuando lleguen los resultados.',
-                    style: TextStyle(height: 1.4), // Mejor legibilidad
+                    style: TextStyle(height: 1.4),
                   ),
-                  backgroundColor: AppColors.secondary, // Verde Incauca
+                  backgroundColor: AppColors.secondary,
                   behavior: SnackBarBehavior.floating,
-                  duration: Duration(seconds: 6), // Tiempo extendido de lectura
+                  duration: Duration(seconds: 6),
                 ),
               );
             } else if (state.uploadStatus == UploadStatus.failure) {
@@ -196,28 +233,45 @@ class _UploadViewState extends State<UploadView> {
           },
         ),
 
-        // LISTENER 2: NOTIFICACIÓN DE RESULTADOS (SOCKET)
+        // LISTENER 2: NOTIFICACIÓN DE RESULTADOS
         BlocListener<UploadBloc, UploadState>(
           listenWhen: (prev, curr) => prev.lastNotificationTime != curr.lastNotificationTime,
           listener: (context, state) {
             if (state.lastNotificationMessage != null) {
+              
+              // 1. Crear la notificación local
+              final newNotification = LocalNotification(
+                message: state.lastNotificationMessage!,
+                timestamp: DateTime.now(),
+                isRead: false, // Por defecto no leída
+              );
+
+              // 2. Agregarla a la lista y actualizar UI (contador sube)
               setState(() {
-                _notifications.insert(0, state.lastNotificationMessage!);
-                _unreadNotifications++;
+                _notifications.insert(0, newNotification);
               });
               
-              // SnackBar interactivo con Acción
+              // 3. Mostrar SnackBar
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('Se ha terminado de procesar una imagen.'),
-                  backgroundColor: AppColors.primary, // Azul corporativo para info
+                  backgroundColor: AppColors.primary,
                   behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 8), // Tiempo suficiente para dar click
+                  duration: const Duration(seconds: 8),
                   action: SnackBarAction(
                     label: 'VER DETALLE',
-                    textColor: AppColors.accent, // Amarillo para resaltar la acción
-                    onPressed: _navigateToDetail,
+                    textColor: AppColors.accent,
+                    onPressed: () {
+                      // 4. LÓGICA DE "MARCAR COMO LEÍDA" AL CLICAR
+                      setState(() {
+                        newNotification.isRead = true;
+                        // El getter _unreadCount se actualizará automáticamente en el próximo build
+                      });
+                      
+                      // 5. Navegar
+                      _navigateToDetail();
+                    },
                   ),
                 ),
               );
@@ -233,7 +287,7 @@ class _UploadViewState extends State<UploadView> {
               elevation: 0,
               backgroundColor: AppColors.primary,
               title: const Text(
-                'Carga para Análisis', // Título actualizado
+                'Carga para Análisis',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               centerTitle: true,
@@ -245,14 +299,15 @@ class _UploadViewState extends State<UploadView> {
                       icon: const Icon(Icons.notifications_outlined, size: 28),
                       onPressed: _showNotificationsModal,
                     ),
-                    if (_unreadNotifications > 0)
+                    // Usamos el getter dinámico
+                    if (_unreadCount > 0)
                       Positioned(
                         right: 12,
                         top: 12,
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(
-                            color: AppColors.accent, // Usamos el amarillo de "Energía"
+                            color: AppColors.accent,
                             shape: BoxShape.circle,
                           ),
                           constraints: const BoxConstraints(
@@ -260,9 +315,9 @@ class _UploadViewState extends State<UploadView> {
                             minHeight: 16,
                           ),
                           child: Text(
-                            '$_unreadNotifications',
+                            '$_unreadCount', // Muestra el conteo real
                             style: const TextStyle(
-                              color: AppColors.primary, // Texto oscuro sobre amarillo
+                              color: AppColors.primary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -277,7 +332,7 @@ class _UploadViewState extends State<UploadView> {
             ),
             body: Column(
               children: [
-                // Banner de conexión (solo si falla)
+                // Banner reconexión
                 AnimatedSize(
                   duration: const Duration(milliseconds: 300),
                   child: !state.isConnected
@@ -307,13 +362,12 @@ class _UploadViewState extends State<UploadView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Textos Informativos
                         const Text(
                           'Nuevo Análisis',
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary, // Azul Incauca
+                            color: AppColors.primary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -345,7 +399,7 @@ class _UploadViewState extends State<UploadView> {
                               border: Border.all(
                                 color: state.uploadStatus == UploadStatus.loading
                                     ? Colors.grey.shade300
-                                    : AppColors.primary.withOpacity(0.2), // Borde sutil
+                                    : AppColors.primary.withOpacity(0.2),
                                 width: 2,
                               ),
                               boxShadow: [
@@ -372,7 +426,8 @@ class _UploadViewState extends State<UploadView> {
       ),
     );
   }
-
+  
+  // _buildLoadingView y _buildDropZoneView se mantienen iguales...
   Widget _buildDropZoneView() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -383,36 +438,15 @@ class _UploadViewState extends State<UploadView> {
             color: AppColors.background,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.add_a_photo_outlined, // Icono más "técnico"
-            size: 50,
-            color: AppColors.primary,
-          ),
+          child: const Icon(Icons.add_a_photo_outlined, size: 50, color: AppColors.primary),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'Seleccionar Imagen',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.primary,
-          ),
-        ),
+        const Text('Seleccionar Imagen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.primary)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Text(
-            'Formatos: JPG, PNG',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.secondary, // Verde
-            ),
-          ),
+          decoration: BoxDecoration(color: AppColors.secondary.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+          child: const Text('Formatos: JPG, PNG', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.secondary)),
         ),
       ],
     );
@@ -422,31 +456,11 @@ class _UploadViewState extends State<UploadView> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(
-          width: 50,
-          height: 50,
-          child: CircularProgressIndicator(
-            color: AppColors.secondary,
-            strokeWidth: 4,
-          ),
-        ),
+        const SizedBox(width: 50, height: 50, child: CircularProgressIndicator(color: AppColors.secondary, strokeWidth: 4)),
         const SizedBox(height: 24),
-        const Text(
-          'Subiendo imagen...',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.dark,
-          ),
-        ),
+        const Text('Subiendo imagen...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.dark)),
         const SizedBox(height: 8),
-        Text(
-          'Preparando para análisis',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
-        ),
+        Text('Preparando para análisis', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
       ],
     );
   }
