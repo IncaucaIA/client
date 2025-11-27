@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:incauca_labs/core/theme.dart';
 import 'core/service_locator.dart';
 import 'filters/upload/application/bloc/upload_bloc.dart';
 import 'filters/upload/application/upload_view.dart';
@@ -16,10 +17,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SIVIA',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: lightTheme,
       home: BlocProvider(
         create: (context) => getIt<UploadBloc>(),
         child: const UploadView(),
