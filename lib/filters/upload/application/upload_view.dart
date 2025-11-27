@@ -56,145 +56,93 @@ class _UploadViewState extends State<UploadView> {
         title: const Text('Incauca Labs - Image Upload'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: BlocConsumer<UploadBloc, UploadState>(
-        listener: (context, state) {
-          if (state is UploadSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('✅ Image uploaded: ${state.document.image.url}'),
-                backgroundColor: Colors.green,
+      body: // En tu build:
+BlocConsumer<UploadBloc, UploadState>(
+  listenWhen: (previous, current) {
+    // Solo escuchar si cambia el status o llega una nueva notificación
+    return previous.uploadStatus != current.uploadStatus ||
+           previous.lastNotificationTime != current.lastNotificationTime;
+  },
+  listener: (context, state) {
+    // Manejo de Upload
+    if (state.uploadStatus == UploadStatus.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('✅ Image uploaded: ${state.document?.image.url}'), backgroundColor: Colors.green),
+      );
+    } else if (state.uploadStatus == UploadStatus.failure) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Error: ${state.errorMessage}'), backgroundColor: Colors.red),
+      );
+    }
+
+    // Manejo de Notificaciones
+    // Verificamos que el mensaje no sea null y que sea "nuevo" (diferente timestamp)
+    if (state.lastNotificationMessage != null && 
+        state.lastNotificationTime != null) {
+      
+      // Actualizamos la lista local
+      setState(() {
+        _notifications.insert(0, '[${state.lastNotificationTime!.toLocal()}] ${state.lastNotificationMessage}');
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('📩 ${state.lastNotificationMessage}'),
+          backgroundColor: Colors.purple,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  },
+  builder: (context, state) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Connection Status Card
+          Card(
+            // Ahora simplemente verificamos la propiedad booleana
+            color: state.isConnected ? Colors.green.shade50 : Colors.orange.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Icon(
+                    state.isConnected ? Icons.cloud_done : Icons.cloud_off,
+                    color: state.isConnected ? Colors.green : Colors.orange,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    state.isConnected ? 'Connected to Web PubSub' : 'Connecting/Disconnected...',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-            );
-          } else if (state is UploadFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('❌ Upload failed: ${state.error}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          } else if (state is WebSocketConnected) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Connected to real-time notifications'),
-                backgroundColor: Colors.blue,
-              ),
-            );
-          } else if (state is NotificationReceivedState) {
-            setState(() {
-              _notifications.insert(
-                0,
-                '[${state.timestamp.toLocal()}] ${state.message}',
-              );
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('📩 New notification: ${state.message}'),
-                backgroundColor: Colors.purple,
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Connection Status Card
-                Card(
-                  color: state is WebSocketConnected
-                      ? Colors.green.shade50
-                      : Colors.orange.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          state is WebSocketConnected
-                              ? Icons.cloud_done
-                              : Icons.cloud_off,
-                          color: state is WebSocketConnected
-                              ? Colors.green
-                              : Colors.orange,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          state is WebSocketConnected
-                              ? 'Connected to Web PubSub'
-                              : 'Connecting...',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Upload Button
-                ElevatedButton.icon(
-                  onPressed: state is UploadInProgress
-                      ? null
-                      : () => _pickAndUploadImage(context),
-                  icon: const Icon(Icons.upload_file),
-                  label: Text(
-                    state is UploadInProgress
-                        ? 'Uploading...'
-                        : 'Select & Upload Image',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                  ),
-                ),
-
-                if (state is UploadInProgress)
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: LinearProgressIndicator(),
-                  ),
-
-                const SizedBox(height: 24),
-
-                // Notifications Section
-                const Text(
-                  'Real-time Notifications',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                Expanded(
-                  child: _notifications.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No notifications yet.\nUpload an image to see real-time updates!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _notifications.length,
-                          itemBuilder: (context, index) {
-                            return Card(
-                              child: ListTile(
-                                leading: const Icon(
-                                  Icons.notifications_active,
-                                  color: Colors.purple,
-                                ),
-                                title: Text(_notifications[index]),
-                                dense: true,
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
             ),
-          );
-        },
+          ),
+          
+          const SizedBox(height: 16),
+          
+          ElevatedButton.icon(
+            // Bloqueamos botón si está subiendo
+            onPressed: state.uploadStatus == UploadStatus.loading
+                ? null
+                : () => _pickAndUploadImage(context),
+            icon: const Icon(Icons.upload_file),
+            label: Text(state.uploadStatus == UploadStatus.loading
+                ? 'Uploading...'
+                : 'Select & Upload Image'),
+          ),
+          
+          if (state.uploadStatus == UploadStatus.loading)
+             const LinearProgressIndicator(),
+             
+          // ... Resto de tu UI (Lista de notificaciones)
+        ],
       ),
+    );
+  },
+),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _pickAndUploadImage(context),
         tooltip: 'Upload Image',

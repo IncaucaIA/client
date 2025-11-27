@@ -1,56 +1,51 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/models/image_document.dart';
 
-abstract class UploadState extends Equatable {
-  const UploadState();
+enum UploadStatus { initial, loading, success, failure }
 
-  @override
-  List<Object?> get props => [];
-}
+class UploadState extends Equatable {
+  final UploadStatus uploadStatus;
+  final bool isConnected; // Esta propiedad persistirá entre eventos
+  final ImageDocument? document;
+  final String? errorMessage;
+  final String? lastNotificationMessage; // Para disparar el SnackBar
+  final DateTime? lastNotificationTime;
 
-class UploadInitial extends UploadState {
-  const UploadInitial();
-}
-
-class UploadInProgress extends UploadState {
-  const UploadInProgress();
-}
-
-class UploadSuccess extends UploadState {
-  final ImageDocument document;
-
-  const UploadSuccess(this.document);
-
-  @override
-  List<Object?> get props => [document];
-}
-
-class UploadFailure extends UploadState {
-  final String error;
-
-  const UploadFailure(this.error);
-
-  @override
-  List<Object?> get props => [error];
-}
-
-class WebSocketConnected extends UploadState {
-  const WebSocketConnected();
-}
-
-class WebSocketDisconnected extends UploadState {
-  const WebSocketDisconnected();
-}
-
-class NotificationReceivedState extends UploadState {
-  final String message;
-  final DateTime timestamp;
-
-  const NotificationReceivedState({
-    required this.message,
-    required this.timestamp,
+  const UploadState({
+    this.uploadStatus = UploadStatus.initial,
+    this.isConnected = false,
+    this.document,
+    this.errorMessage,
+    this.lastNotificationMessage,
+    this.lastNotificationTime,
   });
 
+  // Método copyWith para actualizar solo lo que cambia
+  UploadState copyWith({
+    UploadStatus? uploadStatus,
+    bool? isConnected,
+    ImageDocument? document,
+    String? errorMessage,
+    String? lastNotificationMessage,
+    DateTime? lastNotificationTime,
+  }) {
+    return UploadState(
+      uploadStatus: uploadStatus ?? this.uploadStatus,
+      isConnected: isConnected ?? this.isConnected,
+      document: document ?? this.document,
+      errorMessage: errorMessage ?? this.errorMessage,
+      lastNotificationMessage: lastNotificationMessage ?? this.lastNotificationMessage,
+      lastNotificationTime: lastNotificationTime ?? this.lastNotificationTime,
+    );
+  }
+
   @override
-  List<Object?> get props => [message, timestamp];
+  List<Object?> get props => [
+        uploadStatus,
+        isConnected,
+        document,
+        errorMessage,
+        lastNotificationMessage,
+        lastNotificationTime,
+      ];
 }

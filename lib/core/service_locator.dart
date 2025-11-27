@@ -2,11 +2,9 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../filters/upload/domain/storage_remote_datasource.dart';
-import '../filters/upload/domain/cosmos_db_remote_datasource.dart';
 import '../filters/upload/domain/websocket_datasource.dart';
 import '../filters/upload/domain/filter_repository.dart';
 import '../filters/upload/data/storage_remote_datasource_impl.dart';
-import '../filters/upload/data/cosmos_db_remote_datasource_impl.dart';
 import '../filters/upload/data/websocket_datasource_impl.dart';
 import '../filters/upload/data/filter_repository_impl.dart';
 import '../filters/upload/application/bloc/upload_bloc.dart';
@@ -23,10 +21,6 @@ void setupServiceLocator() {
     () => StorageRemoteDatasourceImpl(httpClient: getIt<http.Client>()),
   );
 
-  getIt.registerLazySingleton<CosmosDbRemoteDatasource>(
-    () => CosmosDbRemoteDatasourceImpl(httpClient: getIt<http.Client>()),
-  );
-
   getIt.registerLazySingleton<WebSocketDatasource>(
     () => WebSocketDatasourceImpl(httpClient: getIt<http.Client>()),
   );
@@ -35,7 +29,6 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<FilterRepository>(
     () => FilterRepositoryImpl(
       storageDataSource: getIt<StorageRemoteDatasource>(),
-      cosmosDbDataSource: getIt<CosmosDbRemoteDatasource>(),
       webSocketDataSource: getIt<WebSocketDatasource>(),
       uuid: getIt<Uuid>(),
     ),

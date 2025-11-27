@@ -8,29 +8,38 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
   final FilterRepository repository;
   StreamSubscription<String>? _notificationSubscription;
 
-  UploadBloc({required this.repository}) : super(const UploadInitial()) {
+  UploadBloc({required this.repository}) : super(const UploadState()) {
     on<UploadImageRequested>(_onUploadImageRequested);
     on<WebSocketConnectionRequested>(_onWebSocketConnectionRequested);
     on<NotificationReceived>(_onNotificationReceived);
     on<WebSocketDisconnectionRequested>(_onWebSocketDisconnectionRequested);
   }
 
+
   Future<void> _onUploadImageRequested(
     UploadImageRequested event,
     Emitter<UploadState> emit,
   ) async {
-    emit(const UploadInProgress());
+    // Mantenemos isConnected igual, solo cambiamos el status a loading
+    emit(state.copyWith(uploadStatus: UploadStatus.loading));
     try {
       final document = await repository.uploadImageWithMetadata(
         image: event.image,
         userId: event.userId,
         tags: event.tags,
       );
-      emit(UploadSuccess(document));
+      emit(state.copyWith(
+        uploadStatus: UploadStatus.success,
+        document: document,
+      ));
     } catch (e) {
-      emit(UploadFailure(e.toString()));
+      emit(state.copyWith(
+        uploadStatus: UploadStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
+
 
   Future<void> _onWebSocketConnectionRequested(
     WebSocketConnectionRequested event,
@@ -38,16 +47,20 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
   ) async {
     try {
       await repository.connectToNotifications();
-      emit(const WebSocketConnected());
+      // Marcamos como conectado
+      emit(state.copyWith(isConnected: true));
 
-      // Subscribe to notification stream
       _notificationSubscription = repository.listenToNotifications().listen(
         (message) {
           add(NotificationReceived(message));
         },
       );
     } catch (e) {
-      emit(UploadFailure('Failed to connect to WebSocket: $e'));
+      // Si falla la conexión, marcamos error pero no cambiamos el uploadStatus si no es necesario
+      emit(state.copyWith(
+        isConnected: false,
+        errorMessage: 'Failed to connect to WebSocket: $e',
+      ));
     }
   }
 
@@ -55,9 +68,11 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
     NotificationReceived event,
     Emitter<UploadState> emit,
   ) async {
-    emit(NotificationReceivedState(
-      message: event.message,
-      timestamp: DateTime.now(),
+    // AQUÍ ESTÁ LA MAGIA: 
+    // Usamos copyWith, por lo que isConnected sigue siendo true del estado anterior
+    emit(state.copyWith(
+      lastNotificationMessage: event.message,
+      lastNotificationTime: DateTime.now(),
     ));
   }
 
@@ -67,7 +82,7 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
   ) async {
     await _notificationSubscription?.cancel();
     await repository.disconnectFromNotifications();
-    emit(const WebSocketDisconnected());
+    emit(state.copyWith(isConnected: false));
   }
 
   @override

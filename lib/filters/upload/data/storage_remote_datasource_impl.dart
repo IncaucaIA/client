@@ -60,14 +60,13 @@ class StorageRemoteDatasourceImpl implements StorageRemoteDatasource {
     // Asumimos que tienes un endpoint en tu Azure Function para esto
     // Ej: GET https://api.tudominio.com/api/getUploadUrl?filename=xyz.jpg
     final uri = Uri.parse(
-      '${AzureConfig.apiBaseUrl}/getUploadUrl',
+      '${AzureConfig.apiBaseUrl}/${AzureConfig.getUploadUrlEndpoint}',
     ).replace(queryParameters: {'filename': fileName});
 
     final response = await httpClient.get(uri);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      // El backend debe devolver { "url": "https://..." }
       return data['url'];
     } else {
       throw Exception(
