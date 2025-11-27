@@ -49,111 +49,174 @@ class _UploadViewState extends State<UploadView> {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Incauca Labs - Image Upload'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: // En tu build:
-BlocConsumer<UploadBloc, UploadState>(
-  listenWhen: (previous, current) {
-    // Solo escuchar si cambia el status o llega una nueva notificación
-    return previous.uploadStatus != current.uploadStatus ||
-           previous.lastNotificationTime != current.lastNotificationTime;
-  },
-  listener: (context, state) {
-    // Manejo de Upload
-    if (state.uploadStatus == UploadStatus.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ Image uploaded: ${state.document?.image.url}'), backgroundColor: Colors.green),
-      );
-    } else if (state.uploadStatus == UploadStatus.failure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Error: ${state.errorMessage}'), backgroundColor: Colors.red),
-      );
-    }
-
-    // Manejo de Notificaciones
-    // Verificamos que el mensaje no sea null y que sea "nuevo" (diferente timestamp)
-    if (state.lastNotificationMessage != null && 
-        state.lastNotificationTime != null) {
-      
-      // Actualizamos la lista local
-      setState(() {
-        _notifications.insert(0, '[${state.lastNotificationTime!.toLocal()}] ${state.lastNotificationMessage}');
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('📩 ${state.lastNotificationMessage}'),
-          backgroundColor: Colors.purple,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  },
-  builder: (context, state) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          // Connection Status Card
-          Card(
-            // Ahora simplemente verificamos la propiedad booleana
-            color: state.isConnected ? Colors.green.shade50 : Colors.orange.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Icon(
-                    state.isConnected ? Icons.cloud_done : Icons.cloud_off,
-                    color: state.isConnected ? Colors.green : Colors.orange,
+      // Usamos MultiBlocListener para separar las reacciones
+      body: MultiBlocListener(
+        listeners: [
+          // LISTENER 1: Solo maneja el éxito/fallo de la SUBIDA PROPIA
+          BlocListener<UploadBloc, UploadState>(
+            listenWhen: (previous, current) {
+              // Solo se activa si el estado de subida CAMBIÓ
+              return previous.uploadStatus != current.uploadStatus;
+            },
+            listener: (context, state) {
+              if (state.uploadStatus == UploadStatus.success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('✅ Tu imagen se subió correctamente: ${state.document?.image.url}'),
+                    backgroundColor: Colors.green,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    state.isConnected ? 'Connected to Web PubSub' : 'Connecting/Disconnected...',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                );
+              } else if (state.uploadStatus == UploadStatus.failure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('❌ Falló tu subida: ${state.errorMessage}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+          ),
+
+          // LISTENER 2: Solo maneja NOTIFICACIONES (Sockets)
+          BlocListener<UploadBloc, UploadState>(
+            listenWhen: (previous, current) {
+              // Solo se activa si el timestamp de la notificación cambió
+              return previous.lastNotificationTime != current.lastNotificationTime;
+            },
+            listener: (context, state) {
+              if (state.lastNotificationMessage != null) {
+                // Actualizamos la lista visual
+                setState(() {
+                  _notifications.insert(
+                    0,
+                    '[${state.lastNotificationTime!.toLocal()}] ${state.lastNotificationMessage}',
+                  );
+                });
+                
+                // Mostramos el SnackBar de notificación
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('📩 Nueva alerta: ${state.lastNotificationMessage}'),
+                    backgroundColor: Colors.purple,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+        // BUILDER: Solo se encarga de dibujar la UI, no de los SnackBars
+        child: BlocBuilder<UploadBloc, UploadState>(
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // --- Tarjeta de Estado de Conexión ---
+                  Card(
+                    color: state.isConnected
+                        ? Colors.green.shade50
+                        : Colors.orange.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            state.isConnected ? Icons.cloud_done : Icons.cloud_off,
+                            color: state.isConnected ? Colors.green : Colors.orange,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            state.isConnected
+                                ? 'Conectado a Web PubSub'
+                                : 'Desconectado / Conectando...',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- Botón de Subida ---
+                  ElevatedButton.icon(
+                    // Bloqueamos si está cargando
+                    onPressed: state.uploadStatus == UploadStatus.loading
+                        ? null
+                        : () => _pickAndUploadImage(context),
+                    icon: const Icon(Icons.upload_file),
+                    label: Text(
+                      state.uploadStatus == UploadStatus.loading
+                          ? 'Subiendo...'
+                          : 'Seleccionar y Subir Imagen',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(16),
+                    ),
+                  ),
+
+                  if (state.uploadStatus == UploadStatus.loading)
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: LinearProgressIndicator(),
+                    ),
+
+                  const SizedBox(height: 24),
+
+                  // --- Sección de Notificaciones ---
+                  const Text(
+                    'Notificaciones en Tiempo Real',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Expanded(
+                    child: _notifications.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'Sin notificaciones.\nLas alertas de otros usuarios aparecerán aquí.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _notifications.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+                                child: ListTile(
+                                  leading: const Icon(
+                                    Icons.notifications_active,
+                                    color: Colors.purple,
+                                  ),
+                                  title: Text(_notifications[index]),
+                                  dense: true,
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          ElevatedButton.icon(
-            // Bloqueamos botón si está subiendo
-            onPressed: state.uploadStatus == UploadStatus.loading
-                ? null
-                : () => _pickAndUploadImage(context),
-            icon: const Icon(Icons.upload_file),
-            label: Text(state.uploadStatus == UploadStatus.loading
-                ? 'Uploading...'
-                : 'Select & Upload Image'),
-          ),
-          
-          if (state.uploadStatus == UploadStatus.loading)
-             const LinearProgressIndicator(),
-             
-          // ... Resto de tu UI (Lista de notificaciones)
-        ],
+            );
+          },
+        ),
       ),
-    );
-  },
-),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _pickAndUploadImage(context),
         tooltip: 'Upload Image',
         child: const Icon(Icons.camera_alt),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    context.read<UploadBloc>().add(const WebSocketDisconnectionRequested());
-    super.dispose();
   }
 }

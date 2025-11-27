@@ -14,26 +14,22 @@ class StorageRemoteDatasourceImpl implements StorageRemoteDatasource {
   @override
   Future<String> uploadImage(File image) async {
     try {
-      final fileName = path.basename(image.path);
+      final fileExtension = path.extension(image.path);
 
-      // 1. Obtener la URL firmada (SAS) desde tu Backend
-      // El backend debe devolver la URL completa donde subir:
-      // ej: https://tuceuta.blob.core.windows.net/contenedor/img.jpg?sas_token...
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}$fileExtension';
+
       final uploadUrl = await _getUploadUrlFromBackend(fileName);
 
-      // 2. Leer el archivo
       final fileBytes = await image.readAsBytes();
 
-      // Intentar adivinar el tipo de contenido (opcional pero recomendado)
       final mimeType = lookupMimeType(image.path) ?? 'application/octet-stream';
 
-      // 3. Subir a Azure Blob Storage usando la URL SAS
       final uri = Uri.parse(uploadUrl);
 
       final response = await httpClient.put(
         uri,
         headers: {
-          'x-ms-blob-type': 'BlockBlob', // Requerido por Azure
+          'x-ms-blob-type': 'BlockBlob',
           'Content-Type': mimeType,
         },
         body: fileBytes,
@@ -55,10 +51,8 @@ class StorageRemoteDatasourceImpl implements StorageRemoteDatasource {
     }
   }
 
-  // Método auxiliar para pedir el permiso de escritura al backend
   Future<String> _getUploadUrlFromBackend(String fileName) async {
-    // Asumimos que tienes un endpoint en tu Azure Function para esto
-    // Ej: GET https://api.tudominio.com/api/getUploadUrl?filename=xyz.jpg
+
     final uri = Uri.parse(
       '${AzureConfig.apiBaseUrl}/${AzureConfig.getUploadUrlEndpoint}',
     ).replace(queryParameters: {'filename': fileName});
