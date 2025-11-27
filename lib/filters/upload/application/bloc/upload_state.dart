@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:incauca_labs/filters/upload/domain/models/analysis_result.dart';
 import '../../domain/models/image_document.dart';
 
 enum UploadStatus { initial, loading, success, failure }
@@ -8,7 +9,7 @@ class UploadState extends Equatable {
   final bool isConnected; // Esta propiedad persistirá entre eventos
   final ImageDocument? document;
   final String? errorMessage;
-  final String? lastNotificationMessage; // Para disparar el SnackBar
+  final AnalysisResult? lastAnalysisResult; 
   final DateTime? lastNotificationTime;
 
   const UploadState({
@@ -16,7 +17,7 @@ class UploadState extends Equatable {
     this.isConnected = false,
     this.document,
     this.errorMessage,
-    this.lastNotificationMessage,
+    this.lastAnalysisResult,
     this.lastNotificationTime,
   });
 
@@ -26,7 +27,7 @@ class UploadState extends Equatable {
     bool? isConnected,
     ImageDocument? document,
     String? errorMessage,
-    String? lastNotificationMessage,
+    AnalysisResult? lastAnalysisResult,
     DateTime? lastNotificationTime,
   }) {
     return UploadState(
@@ -34,7 +35,7 @@ class UploadState extends Equatable {
       isConnected: isConnected ?? this.isConnected,
       document: document ?? this.document,
       errorMessage: errorMessage ?? this.errorMessage,
-      lastNotificationMessage: lastNotificationMessage ?? this.lastNotificationMessage,
+      lastAnalysisResult: lastAnalysisResult ?? this.lastAnalysisResult,
       lastNotificationTime: lastNotificationTime ?? this.lastNotificationTime,
     );
   }
@@ -45,7 +46,7 @@ class UploadState extends Equatable {
         isConnected,
         document,
         errorMessage,
-        lastNotificationMessage,
+        lastAnalysisResult,
         lastNotificationTime,
       ];
 }

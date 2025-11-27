@@ -4,29 +4,88 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import 'package:incauca_labs/core/colors.dart';
+import 'package:incauca_labs/filters/upload/domain/models/analysis_result.dart';
 import 'bloc/upload_bloc.dart';
 import 'bloc/upload_event.dart';
 import 'bloc/upload_state.dart';
 
 class LocalNotification {
-  final String message;
+  final AnalysisResult result;
   final DateTime timestamp;
   bool isRead;
 
   LocalNotification({
-    required this.message, 
+    required this.result,
     required this.timestamp, 
     this.isRead = false
   });
 }
 
 class ResultDetailView extends StatelessWidget {
-  const ResultDetailView({super.key});
-  @override
+  final AnalysisResult result; // Recibe los datos
+
+  const ResultDetailView({super.key, required this.result});
+
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle del Análisis')),
-      body: const Center(child: Text('Aquí se mostrarán los resultados del análisis')),
+      body: SingleChildScrollView( // Agregado para permitir scroll si la lista es larga
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Imagen superior
+            Image.asset(
+              "assets/images/filter_analyzed.jpg", 
+              height: 380, 
+              width: double.infinity, 
+              fit: BoxFit.cover
+            ),
+            
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- SECCIÓN 1: EFECTOS ---
+                  Text("Sección Efectos", style: Theme.of(context).textTheme.headlineSmall),
+                  const Divider(),
+                  _buildRow("Primer Efecto", "${result.firstEffect}"),
+                  _buildRow("Segundo Efecto", "${result.secondEffect}"),
+                  _buildRow("Tercer Efecto", "${result.thirdEffect}"),
+                  _buildRow("Cuarto Efecto", "${result.fourthEffect}"),
+                  _buildRow("Quinto Efecto", "${result.fifthEffect}"),
+
+                  const SizedBox(height: 30), // Espacio entre secciones
+
+                  // --- SECCIÓN 2: OTROS (Composición) ---
+                  Text("Otros Resultados", style: Theme.of(context).textTheme.headlineSmall),
+                  const Divider(),
+                  _buildRow("Bagazo", "${result.fineBagasse}"),
+                  _buildRow("Metal", "${result.metal}"),
+                  _buildRow("Arena", "${result.sand}"),
+                  // Puedes dejar Impurezas Totales aquí o al final como resumen
+                  const SizedBox(height: 10),
+                  _buildRow("Impurezas Totales", result.impurityCount.toString(), isBold: true),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+        ],
+      ),
     );
   }
 }
@@ -76,13 +135,12 @@ class _UploadViewState extends State<UploadView> {
     }
   }
 
-  void _navigateToDetail() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ResultDetailView()),
-    );
-  }
-
+void _navigateToDetail(AnalysisResult result) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ResultDetailView(result: result)),
+  );
+}
   // --- MODAL DE NOTIFICACIONES ---
   void _showNotificationsModal() {
     // Al abrir el modal, marcamos todas como leídas visualmente tras un pequeño delay
@@ -150,6 +208,7 @@ class _UploadViewState extends State<UploadView> {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final notification = _notifications[index];
+                        final result = notification.result; 
                         return Container(
                           // Fondo sutil si no está leída (por si abrimos modal sin marcar todo)
                           color: notification.isRead ? Colors.transparent : AppColors.primary.withOpacity(0.05),
@@ -160,14 +219,14 @@ class _UploadViewState extends State<UploadView> {
                               child: const Icon(Icons.check_circle_outline, color: AppColors.secondary),
                             ),
                             title: Text(
-                              'Análisis completado',
+                              'Impurezas detectadas: ${result.impurityCount}',
                               style: TextStyle(
                                 fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
                                 color: AppColors.dark,
                               ),
                             ),
                             subtitle: Text(
-                              notification.message,
+                                      'Arena: ${result.sand} | Metal: ${result.metal}', // Datos reales del backend,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -187,7 +246,7 @@ class _UploadViewState extends State<UploadView> {
                             ),
                             onTap: () {
                               Navigator.pop(context);
-                              _navigateToDetail();
+                              _navigateToDetail(result);
                             },
                           ),
                         );
@@ -234,50 +293,46 @@ class _UploadViewState extends State<UploadView> {
         ),
 
         // LISTENER 2: NOTIFICACIÓN DE RESULTADOS
-        BlocListener<UploadBloc, UploadState>(
-          listenWhen: (prev, curr) => prev.lastNotificationTime != curr.lastNotificationTime,
-          listener: (context, state) {
-            if (state.lastNotificationMessage != null) {
-              
-              // 1. Crear la notificación local
-              final newNotification = LocalNotification(
-                message: state.lastNotificationMessage!,
-                timestamp: DateTime.now(),
-                isRead: false, // Por defecto no leída
-              );
+// Dentro de MultiBlocListener -> BlocListener
+BlocListener<UploadBloc, UploadState>(
+  listenWhen: (prev, curr) => prev.lastNotificationTime != curr.lastNotificationTime,
+  listener: (context, state) {
+    if (state.lastAnalysisResult != null) {
+      final result = state.lastAnalysisResult!;
+      
+      // Crear notificación con datos reales
+      final newNotification = LocalNotification(
+        result: result,
+        isRead: false,
+        timestamp: result.processedAt,
+      );
 
-              // 2. Agregarla a la lista y actualizar UI (contador sube)
-              setState(() {
-                _notifications.insert(0, newNotification);
-              });
-              
-              // 3. Mostrar SnackBar
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Se ha terminado de procesar una imagen.'),
-                  backgroundColor: AppColors.primary,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 8),
-                  action: SnackBarAction(
-                    label: 'VER DETALLE',
-                    textColor: AppColors.accent,
-                    onPressed: () {
-                      // 4. LÓGICA DE "MARCAR COMO LEÍDA" AL CLICAR
-                      setState(() {
-                        newNotification.isRead = true;
-                        // El getter _unreadCount se actualizará automáticamente en el próximo build
-                      });
-                      
-                      // 5. Navegar
-                      _navigateToDetail();
-                    },
-                  ),
-                ),
-              );
-            }
-          },
+      setState(() {
+        _notifications.insert(0, newNotification);
+      });
+      
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          // Muestra datos específicos en el mensaje emergente
+          content: Text('Análisis completado: ${result.impurityCount} impurezas detectadas.'),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(
+            label: 'VER DETALLE',
+            textColor: AppColors.accent,
+            onPressed: () {
+              setState(() { newNotification.isRead = true; });
+              // Pasamos el objeto result a la vista de detalle
+              _navigateToDetail(result); 
+            },
+          ),
         ),
+      );
+    }
+  },
+),
       ],
       child: BlocBuilder<UploadBloc, UploadState>(
         builder: (context, state) {
