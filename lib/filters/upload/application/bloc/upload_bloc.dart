@@ -92,21 +92,16 @@ Future<void> _onNotificationReceived(
       print("✅ JSON Parseado correctamente: $parsedMessage");
 
       // 3. Validamos la estructura
-      if (parsedMessage['type'] == 'new_record' && parsedMessage['data'] != null) {
+      if (parsedMessage.containsKey('impurityDetection') || parsedMessage.containsKey('imageId')) {
         
-        // Aseguramos que 'data' sea un Map
-        final dataMap = parsedMessage['data'];
-        if (dataMap is! Map<String, dynamic>) {
-             print("❌ 'data' no es un Map válido");
-             return;
-        }
-
-        final result = AnalysisResult.fromJson(dataMap);
+        final result = AnalysisResult.fromJson(parsedMessage);
 
         emit(state.copyWith(
           lastAnalysisResult: result,
           lastNotificationTime: DateTime.now(), // Esto dispara el listener en la UI
         ));
+      } else {
+        print("⚠️ Unrecognized message format, missing impurityDetection or imageId: $parsedMessage");
       }
     } catch (e, stackTrace) {
       print("❌ Error crítico parseando notificación: $e");

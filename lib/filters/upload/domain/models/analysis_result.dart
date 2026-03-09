@@ -32,14 +32,41 @@ class AnalysisResult extends Equatable {
 
   // Factory para convertir el JSON feo en este objeto bonito
   factory AnalysisResult.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('impurityDetection')) {
+      final impurityDetection = json['impurityDetection'] as Map<String, dynamic>? ?? {};
+      final impurities = impurityDetection['impurities'] as List<dynamic>? ?? [];
+
+      int getCount(String type) {
+        final item = impurities.firstWhere(
+          (e) => (e as Map)['type'] == type, 
+          orElse: () => {'count': 0}
+        );
+        return (item['count'] as num?)?.toInt() ?? 0;
+      }
+
+      return AnalysisResult(
+        id: json['imageId']?.toString() ?? '',
+        imageUrl: json['imageUrl']?.toString() ?? '',
+        impurityCount: (impurityDetection['totalParticles'] as num?)?.toInt() ?? 0,
+        fineBagasse: getCount('fineBagasse'),
+        metal: getCount('metal'),
+        sand: getCount('sand'),
+        firstEffect: getCount('firstEffect'),
+        secondEffect: getCount('secondEffect'),
+        thirdEffect: getCount('thirdEffect'),
+        fourthEffect: getCount('fourthEffect'),
+        fifthEffect: getCount('fifthEffect'),
+        processedAt: DateTime.tryParse(impurityDetection['evaluatedAt']?.toString() ?? '') ?? DateTime.now(),
+      );
+    }
 
     final imageObj = json['image'] ?? {};
     final aiList = json['aiResults'] as List? ?? [];
     final aiData = aiList.isNotEmpty ? aiList[0] : {};
 
     return AnalysisResult(
-      id: json['id'] ?? '',
-      imageUrl: imageObj['url'] ?? '',
+      id: json['id']?.toString() ?? '',
+      imageUrl: imageObj['url']?.toString() ?? '',
       // Manejo seguro de nulos y tipos numéricos
       impurityCount: (aiData['impurityCount'] as num?)?.toInt() ?? 0,
       fineBagasse: (aiData['fineBagasse'] as num?)?.toInt() ?? 0,
@@ -50,7 +77,7 @@ class AnalysisResult extends Equatable {
       thirdEffect: (aiData['thirdEffect'] as num?)?.toInt() ?? 0,
       fourthEffect: (aiData['fourthEffect'] as num?)?.toInt() ?? 0,
       fifthEffect: (aiData['fifthEffect'] as num?)?.toInt() ?? 0,
-      processedAt: DateTime.tryParse(imageObj['uploadedAt'] ?? '') ?? DateTime.now(),
+      processedAt: DateTime.tryParse(imageObj['uploadedAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 
