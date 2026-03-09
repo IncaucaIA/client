@@ -17,8 +17,8 @@ class WebSocketDatasourceImpl implements WebSocketDatasource {
   @override
   Future<void> connect() async {
     try {
-      // Get the WebSocket URL from the negotiate endpoint
-      final clientUrl = await _getClientUrl();
+      // Connect directly to the local WebSocket endpoint
+      final clientUrl = AppConfig.wsEndpoint;
 
       // Connect to the WebSocket
       _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
@@ -48,25 +48,6 @@ class WebSocketDatasourceImpl implements WebSocketDatasource {
     }
   }
 
-  Future<String> _getClientUrl() async {
-    try {
-      final response = await httpClient.get(
-        Uri.parse(AzureConfig.apiBaseUrl + AzureConfig.negotiateEndpoint),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['url'] as String;
-      } else {
-        throw Exception(
-          'Failed to get client URL: ${response.statusCode} - ${response.body}',
-        );
-      }
-    } catch (e) {
-      throw Exception('Failed to negotiate WebSocket connection: $e');
-    }
-  }
-
   @override
   Stream<String> getMessageStream() {
     return _messageController.stream;
@@ -87,3 +68,4 @@ class WebSocketDatasourceImpl implements WebSocketDatasource {
     disconnect();
   }
 }
+

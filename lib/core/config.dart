@@ -1,21 +1,12 @@
-class AzureConfig {
-  // Web PubSub Configuration
-  static const String negotiateEndpoint = '/negotiate';
-  static const String getUploadUrlEndpoint = '/generate_upload_urls';
+import 'dart:io';
 
-  static const String apiBaseUrl =
-      'https://incauca-linux-function-app.azurewebsites.net/api';
+class AppConfig {
+  static String get baseUrl {
+    if (Platform.isAndroid) return '10.147.17.100:8000';
+    return '10.147.17.100:8000';
+  }
 
-  // Cosmos DB Configuration
-  static const String cosmosDbEndpoint =
-      'https://incauca-cosmos-db-account-36104.documents.azure.com:443/';
-  static const String cosmosDbKey =
-      'sQlZs4yIkQ2rPbbbqtVxfsokrDiHkSGfRmSgxIi0PvKXxcL7w3bw0xrWr9jNkHDRvMMpwok5K3zVACDb0DtSIQ==';
-  static const String databaseName = 'incauca-cosmosdb-database';
-  static const String containerName = 'incauca-cosmosdb-container';
-
-  // Azure Storage Configuration
-  static const String storageAccountUrl =
-      'https://storageaccount36104.blob.core.windows.net';
-  static const String storageContainerName = 'images';
+  static String get apiBaseUrl => 'http://$baseUrl/api';
+  static String get wsEndpoint => 'ws://$baseUrl/ws/results';
+  static String get uploadEndpoint => '/analysis/upload';
 }
