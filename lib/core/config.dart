@@ -1,12 +1,33 @@
-import 'dart:io';
+import 'config_strategy.dart';
 
 class AppConfig {
-  static String get baseUrl {
-    if (Platform.isAndroid) return '10.147.17.100:8000';
-    return '10.147.17.100:8000';
+  static final String _environment = const String.fromEnvironment(
+    'ENVIRONMENT',
+    defaultValue: 'local',
+  ).toLowerCase();
+
+  static late final ConfigStrategy _strategy;
+
+  static void initialize() {
+    print('🚀 Initializing AppConfig for environment: $_environment');
+    if (_environment == 'cloud') {
+      _strategy = CloudConfigStrategy();
+    } else {
+      _strategy = LocalConfigStrategy();
+    }
   }
 
-  static String get apiBaseUrl => 'http://$baseUrl/api';
-  static String get wsEndpoint => 'ws://$baseUrl/ws/results';
-  static String get uploadEndpoint => '/analysis/upload';
+  static ConfigStrategy get strategy => _strategy;
+
+  // Helpers for direct access if preferred
+  static String get apiBaseUrl => _strategy.apiBaseUrl;
+  static bool get isCloud => _strategy.isCloud;
+  
+  // Azure specific
+  static String? get negotiateEndpoint => _strategy.negotiateEndpoint;
+  static String? get getUploadUrlEndpoint => _strategy.getUploadUrlEndpoint;
+  
+  // Local specific
+  static String? get wsEndpoint => _strategy.wsEndpoint;
+  static String? get uploadEndpoint => _strategy.uploadEndpoint;
 }

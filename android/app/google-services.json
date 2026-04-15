@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "355624963520",
+    "project_id": "sivia-284f1",
+    "storage_bucket": "sivia-284f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:355624963520:android:7e56bc98cac6504325cc25",
+        "android_client_info": {
+          "package_name": "com.example.incauca_labs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIQQAXh4Bphb9wffnJBWYnF5FEBoDUXTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

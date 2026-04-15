@@ -5,7 +5,10 @@ import 'core/service_locator.dart';
 import 'filters/upload/application/bloc/upload_bloc.dart';
 import 'filters/upload/application/upload_view.dart';
 
+import 'core/config.dart';
+
 void main() {
+  AppConfig.initialize();
   setupServiceLocator();
   runApp(const MainApp());
 }

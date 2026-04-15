@@ -1,63 +1,53 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:incauca_labs/core/config.dart';
 import 'package:incauca_labs/filters/upload/domain/websocket_datasource.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:http/http.dart' as http;
 
-class WebSocketDatasourceImpl implements WebSocketDatasource {
+class LocalWebSocketDatasourceImpl implements WebSocketDatasource {
   final http.Client httpClient;
   WebSocketChannel? _channel;
   final StreamController<String> _messageController =
       StreamController<String>.broadcast();
   bool _isConnected = false;
 
-  WebSocketDatasourceImpl({required this.httpClient});
+  LocalWebSocketDatasourceImpl({required this.httpClient});
 
   @override
   Future<void> connect() async {
     try {
-      // Connect directly to the local WebSocket endpoint
-      final clientUrl = AppConfig.wsEndpoint;
-
-      // Connect to the WebSocket
+      final clientUrl = AppConfig.wsEndpoint!;
       _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
-
       _isConnected = true;
 
-      // Listen to messages and forward them to the stream
       _channel!.stream.listen(
         (message) {
-          print('📩 WebSocket message received: $message');
+          print('📩 Local WebSocket message: $message');
           _messageController.add(message.toString());
         },
         onError: (error) {
-          print('❌ WebSocket error: $error');
+          print('❌ Local WebSocket error: $error');
           _isConnected = false;
         },
         onDone: () {
-          print('🔌 WebSocket connection closed');
+          print('🔌 Local WebSocket closed');
           _isConnected = false;
         },
       );
-
-      print('✅ Connected to Web PubSub');
+      print('✅ Connected to Local WebSocket');
     } catch (e) {
       _isConnected = false;
-      throw Exception('Failed to connect to WebSocket: $e');
+      throw Exception('Failed to connect to Local WebSocket: $e');
     }
   }
 
   @override
-  Stream<String> getMessageStream() {
-    return _messageController.stream;
-  }
+  Stream<String> getMessageStream() => _messageController.stream;
 
   @override
   Future<void> disconnect() async {
     await _channel?.sink.close();
     _isConnected = false;
-    print('🔌 Disconnected from Web PubSub');
   }
 
   @override
@@ -68,4 +58,3 @@ class WebSocketDatasourceImpl implements WebSocketDatasource {
     disconnect();
   }
 }
-

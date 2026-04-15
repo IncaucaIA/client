@@ -4,10 +4,13 @@ import 'package:uuid/uuid.dart';
 import '../filters/upload/domain/storage_remote_datasource.dart';
 import '../filters/upload/domain/websocket_datasource.dart';
 import '../filters/upload/domain/filter_repository.dart';
-import '../filters/upload/data/storage_remote_datasource_impl.dart';
-import '../filters/upload/data/websocket_datasource_impl.dart';
+import '../filters/upload/data/azure_storage_datasource_impl.dart';
+import '../filters/upload/data/local_storage_datasource_impl.dart';
+import '../filters/upload/data/azure_websocket_datasource_impl.dart';
+import '../filters/upload/data/local_websocket_datasource_impl.dart';
 import '../filters/upload/data/filter_repository_impl.dart';
 import '../filters/upload/application/bloc/upload_bloc.dart';
+import 'config.dart';
 
 final getIt = GetIt.instance;
 
@@ -17,13 +20,21 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<Uuid>(() => const Uuid());
 
   // Data sources
-  getIt.registerLazySingleton<StorageRemoteDatasource>(
-    () => StorageRemoteDatasourceImpl(httpClient: getIt<http.Client>()),
-  );
-
-  getIt.registerLazySingleton<WebSocketDatasource>(
-    () => WebSocketDatasourceImpl(httpClient: getIt<http.Client>()),
-  );
+  if (AppConfig.isCloud) {
+    getIt.registerLazySingleton<StorageRemoteDatasource>(
+      () => AzureStorageRemoteDatasourceImpl(httpClient: getIt<http.Client>()),
+    );
+    getIt.registerLazySingleton<WebSocketDatasource>(
+      () => AzureWebSocketDatasourceImpl(httpClient: getIt<http.Client>()),
+    );
+  } else {
+    getIt.registerLazySingleton<StorageRemoteDatasource>(
+      () => LocalStorageRemoteDatasourceImpl(httpClient: getIt<http.Client>()),
+    );
+    getIt.registerLazySingleton<WebSocketDatasource>(
+      () => LocalWebSocketDatasourceImpl(httpClient: getIt<http.Client>()),
+    );
+  }
 
   // Repository
   getIt.registerLazySingleton<FilterRepository>(

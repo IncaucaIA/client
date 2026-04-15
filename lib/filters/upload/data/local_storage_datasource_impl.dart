@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:incauca_labs/core/config.dart'; // Asegúrate de tener tus configs aquí
+import 'package:incauca_labs/core/config.dart';
 import 'package:incauca_labs/filters/upload/domain/storage_remote_datasource.dart';
-import 'package:path/path.dart' as path;
 
-class StorageRemoteDatasourceImpl implements StorageRemoteDatasource {
+class LocalStorageRemoteDatasourceImpl implements StorageRemoteDatasource {
   final http.Client httpClient;
 
-  StorageRemoteDatasourceImpl({required this.httpClient});
+  LocalStorageRemoteDatasourceImpl({required this.httpClient});
 
   @override
   Future<String> uploadImage(File image) async {
@@ -18,7 +17,7 @@ class StorageRemoteDatasourceImpl implements StorageRemoteDatasource {
       
       request.files.add(
         await http.MultipartFile.fromPath(
-          'file', // backend expects 'file' parameter
+          'file', 
           image.path,
         ),
       );
@@ -28,15 +27,14 @@ class StorageRemoteDatasourceImpl implements StorageRemoteDatasource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        // The backend returns { "status": "ok", "result": { ..., "imageUrl": "..." } }
         return data['result']['imageUrl'] as String;
       } else {
         throw Exception(
-          'Error subiendo al microservicio (${response.statusCode}): ${response.body}',
+          'Error uploading to local microservice (${response.statusCode}): ${response.body}',
         );
       }
     } catch (e) {
-      throw Exception('Failed to upload image: $e');
+      throw Exception('Failed to upload image locally: $e');
     }
   }
 }
