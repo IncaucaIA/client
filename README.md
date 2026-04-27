@@ -1,1 +1,58 @@
-# incauca_labs
+# Incauca Labs
+
+Proyecto Flutter para Incauca.
+
+## Configuración de Entornos
+
+Este proyecto utiliza el **Strategy Pattern** para manejar diferentes entornos (Local y Cloud/Azure). La configuración se maneja a través de variables de entorno pasadas en tiempo de compilación.
+
+### Pasos para configurar:
+
+1. Copia el archivo de ejemplo:
+   ```bash
+   cp env.example .env
+   ```
+2. Edita el archivo `.env` con los valores correspondientes a tu entorno.
+3. Asegúrate de configurar la variable `ENVIRONMENT` como `local` o `cloud`.
+
+### Variables Requeridas
+
+Dependiendo del valor de `ENVIRONMENT`, estas son las variables obligatorias:
+
+#### Común
+- `ENVIRONMENT`: (local | cloud) - Define qué estrategia de configuración usar.
+
+#### Local (`ENVIRONMENT=local`)
+- `LOCAL_BASE_URL`: IP y puerto del servidor local (ej: `10.0.2.2:8000`).
+- `LOCAL_UPLOAD_ENDPOINT`: Ruta del endpoint de subida.
+
+#### Cloud (`ENVIRONMENT=cloud`)
+- `AZURE_API_BASE_URL`: URL base de la Function App en Azure.
+- `AZURE_NEGOTIATE_ENDPOINT`: Endpoint para SignalR.
+- `AZURE_GENERATE_UPLOAD_URL_ENDPOINT`: Endpoint para generar SAS URLs.
+- `COSMOS_DB_*`: Credenciales de acceso a la base de datos.
+- `STORAGE_*`: Credenciales del Storage Account.
+
+> [!TIP]
+> Consulta el archivo [env.example](env.example) para ver la lista completa de variables y valores de ejemplo.
+
+## Cómo Ejecutar
+
+Para ejecutar el proyecto cargando la configuración desde el archivo `.env`, utiliza el siguiente comando:
+
+### En Desarrollo (Debug)
+```bash
+flutter run --dart-define-from-file=.env
+```
+
+### Generar APK/Build
+```bash
+flutter build apk --dart-define-from-file=.env
+```
+
+## Estructura de Configuración
+
+La lógica de selección de entorno se encuentra en `lib/core/config.dart`, la cual inicializa la estrategia correcta basándose en la variable `ENVIRONMENT`:
+
+- **LocalConfigStrategy**: Utiliza `LOCAL_BASE_URL`.
+- **CloudConfigStrategy**: Utiliza las variables de Azure (`AZURE_API_BASE_URL`, etc.).
