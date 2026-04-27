@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:incauca_labs/core/theme.dart';
+import 'core/service_locator.dart';
+import 'filters/upload/application/bloc/upload_bloc.dart';
+import 'filters/upload/application/upload_view.dart';
+
+import 'core/config.dart';
 
 void main() {
+  AppConfig.initialize();
+  setupServiceLocator();
   runApp(const MainApp());
 }
 
@@ -9,11 +18,12 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Incauca Labs!'),
-        ),
+    return MaterialApp(
+      title: 'SIVIA',
+      theme: lightTheme,
+      home: BlocProvider(
+        create: (context) => getIt<UploadBloc>(),
+        child: const UploadView(),
       ),
     );
   }
