@@ -11,6 +11,13 @@ import '../filters/upload/data/local_websocket_datasource_impl.dart';
 import '../filters/upload/data/filter_repository_impl.dart';
 import '../filters/upload/application/bloc/upload_bloc.dart';
 import 'config.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../features/auth/domain/firebase_auth_datasource.dart';
+import '../features/auth/domain/auth_repository.dart';
+import '../features/auth/data/firebase_auth_datasource_impl.dart';
+import '../features/auth/data/auth_repository_impl.dart';
+import '../features/auth/application/bloc/auth_bloc.dart';
+import '../features/auth/application/bloc/auth_validator.dart';
 
 final getIt = GetIt.instance;
 
@@ -18,6 +25,8 @@ void setupServiceLocator() {
   // External dependencies
   getIt.registerLazySingleton<http.Client>(() => http.Client());
   getIt.registerLazySingleton<Uuid>(() => const Uuid());
+  getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
+  getIt.registerLazySingleton<AuthValidator>(() => AuthValidator());
 
   // Data sources
   if (AppConfig.isCloud) {
@@ -36,6 +45,11 @@ void setupServiceLocator() {
     );
   }
 
+  // Auth Data sources
+  getIt.registerLazySingleton<FirebaseAuthDatasource>(
+    () => FirebaseAuthDatasourceImpl(getIt<FirebaseAuth>()),
+  );
+
   // Repository
   getIt.registerLazySingleton<FilterRepository>(
     () => FilterRepositoryImpl(
@@ -45,8 +59,19 @@ void setupServiceLocator() {
     ),
   );
 
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(getIt<FirebaseAuthDatasource>()),
+  );
+
   // BLoC - registered as factory to create new instances when needed
   getIt.registerFactory<UploadBloc>(
     () => UploadBloc(repository: getIt<FilterRepository>()),
+  );
+
+  getIt.registerFactory<AuthBloc>(
+    () => AuthBloc(
+      authRepository: getIt<AuthRepository>(),
+      validator: getIt<AuthValidator>(),
+    ),
   );
 }

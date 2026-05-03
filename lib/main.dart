@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:incauca_labs/core/theme.dart';
 import 'core/service_locator.dart';
 import 'filters/upload/application/bloc/upload_bloc.dart';
 import 'filters/upload/application/upload_view.dart';
+import 'features/auth/application/bloc/auth_bloc.dart';
+import 'features/auth/application/bloc/auth_event.dart';
+import 'features/auth/application/bloc/auth_state.dart';
+import 'features/auth/application/views/sign_in_view.dart';
+import 'firebase_options.dart';
 
 import 'core/config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   AppConfig.initialize();
   setupServiceLocator();
   runApp(const MainApp());
@@ -18,13 +28,41 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SIVIA',
-      theme: lightTheme,
-      home: BlocProvider(
-        create: (context) => getIt<UploadBloc>(),
-        child: const UploadView(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => getIt<AuthBloc>()..add(AuthStarted()),
+        ),
+        BlocProvider(
+          create: (context) => getIt<UploadBloc>(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'SIVIA',
+        theme: lightTheme,
+        home: const AuthWrapper(),
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is Authenticated) {
+          return const UploadView();
+        } else if (state is AuthInitial || state is AuthLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else {
+          return const SignInView();
+        }
+      },
     );
   }
 }

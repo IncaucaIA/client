@@ -8,6 +8,9 @@ import 'package:incauca_labs/filters/upload/domain/models/analysis_result.dart';
 import 'bloc/upload_bloc.dart';
 import 'bloc/upload_event.dart';
 import 'bloc/upload_state.dart';
+import 'package:incauca_labs/features/auth/application/bloc/auth_bloc.dart';
+import 'package:incauca_labs/features/auth/application/bloc/auth_event.dart';
+import 'package:incauca_labs/features/auth/application/bloc/auth_state.dart';
 
 class LocalNotification {
   final AnalysisResult result;
@@ -118,10 +121,16 @@ class _UploadViewState extends State<UploadView> {
 
       if (image != null && context.mounted) {
         final File imageFile = File(image.path);
+        final authState = context.read<AuthBloc>().state;
+        String userId = 'anonymous';
+        if (authState is Authenticated) {
+          userId = authState.user.uid;
+        }
+        
         context.read<UploadBloc>().add(
               UploadImageRequested(
                 image: imageFile,
-                userId: 'user123',
+                userId: userId,
                 tags: ['analysis-request'],
               ),
             );
@@ -347,6 +356,12 @@ BlocListener<UploadBloc, UploadState>(
               ),
               centerTitle: true,
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(SignOutRequested());
+                  },
+                ),
                 Stack(
                   alignment: Alignment.center,
                   children: [
