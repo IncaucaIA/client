@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:incauca_labs/core/config.dart';
 import 'package:incauca_labs/features/filters/domain/websocket_datasource.dart';
+import 'package:incauca_labs/features/auth/data/local_auth_datasource_impl.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 
@@ -17,7 +19,14 @@ class LocalWebSocketDatasourceImpl implements WebSocketDatasource {
   Future<void> connect() async {
     try {
       final clientUrl = AppConfig.wsEndpoint!;
-      _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
+      final token = await LocalAuthDatasourceImpl.getToken();
+
+      _channel = IOWebSocketChannel.connect(
+        Uri.parse(clientUrl),
+        headers: {
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
       _isConnected = true;
 
       _channel!.stream.listen(
