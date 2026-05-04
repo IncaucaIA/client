@@ -2,18 +2,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
-import 'auth_validator.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
-  // ignore: unused_field
-  final AuthValidator _validator;
 
   AuthBloc({
     required AuthRepository authRepository,
-    required AuthValidator validator,
   })  : _authRepository = authRepository,
-        _validator = validator,
         super(AuthInitial()) {
     on<AuthStarted>(_onAuthStarted);
     on<SignInRequested>(_onSignInRequested);

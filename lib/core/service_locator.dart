@@ -15,7 +15,6 @@ import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/data/firebase_auth_datasource_impl.dart';
 import '../features/auth/data/auth_repository_impl.dart';
 import '../features/auth/application/bloc/auth_bloc.dart';
-import '../features/auth/application/bloc/auth_validator.dart';
 
 final getIt = GetIt.instance;
 
@@ -24,7 +23,6 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<http.Client>(() => http.Client());
   getIt.registerLazySingleton<Uuid>(() => const Uuid());
   getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
-  getIt.registerLazySingleton<AuthValidator>(() => AuthValidator());
 
   // Data sources
   if (AppConfig.isCloud) {
@@ -65,7 +63,6 @@ void setupServiceLocator() {
   getIt.registerFactory<AuthBloc>(
     () => AuthBloc(
       authRepository: getIt<AuthRepository>(),
-      validator: getIt<AuthValidator>(),
     ),
   );
 }
