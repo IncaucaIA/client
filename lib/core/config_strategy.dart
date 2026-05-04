@@ -40,13 +40,38 @@ class CloudConfigStrategy implements ConfigStrategy {
 class LocalConfigStrategy implements ConfigStrategy {
   static const String _defaultBaseUrl = '10.147.17.100:8000';
 
+  String _buildUrl(String baseUrl, String defaultScheme, String defaultPath) {
+    var url = baseUrl.trim();
+    if (url.isEmpty) url = _defaultBaseUrl;
+
+    // Check if it already has a scheme (http://, https://, ws://, etc)
+    if (!url.contains('://')) {
+      url = '$defaultScheme://$url';
+    }
+
+    // Remove trailing slash to avoid double slashes when joining
+    if (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Check if it already contains the specific path suffix (case-insensitive check)
+    final urlLower = url.toLowerCase();
+    final pathLower = defaultPath.toLowerCase();
+    
+    if (!urlLower.endsWith(pathLower) && !urlLower.contains('$pathLower/')) {
+      url = '$url$defaultPath';
+    }
+
+    return url;
+  }
+
   @override
   String get apiBaseUrl {
     final baseUrl = const String.fromEnvironment(
       'LOCAL_BASE_URL',
       defaultValue: _defaultBaseUrl,
     );
-    return 'http://$baseUrl/api';
+    return _buildUrl(baseUrl, 'http', '/api');
   }
 
   @override
@@ -61,14 +86,17 @@ class LocalConfigStrategy implements ConfigStrategy {
       'LOCAL_BASE_URL',
       defaultValue: _defaultBaseUrl,
     );
-    return 'ws://$baseUrl/ws/results';
+    return _buildUrl(baseUrl, 'ws', '/ws/results');
   }
 
   @override
-  String get uploadEndpoint => const String.fromEnvironment(
-        'LOCAL_UPLOAD_ENDPOINT',
-        defaultValue: '/analysis/upload',
-      );
+  String get uploadEndpoint {
+    final endpoint = const String.fromEnvironment(
+      'LOCAL_UPLOAD_ENDPOINT',
+      defaultValue: '/analysis/upload',
+    );
+    return endpoint.startsWith('/') ? endpoint : '/$endpoint';
+  }
 
   @override
   bool get isCloud => false;

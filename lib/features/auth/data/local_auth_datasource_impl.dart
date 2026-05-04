@@ -15,6 +15,7 @@ class LocalAuthDatasourceImpl implements AuthDatasource {
   Future<AppUser> signIn(String email, String password) async {
     final baseUrl = AppConfig.apiBaseUrl;
     final url = Uri.parse('$baseUrl/auth/login');
+    print('🔑 Local Auth: Attempting login at $url');
 
     final response = await _httpClient.post(
       url,

@@ -51,11 +51,14 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, state) {
         if (state is Authenticated) {
           return const FilterListView();
-        } else if (state is AuthInitial || state is AuthLoading) {
+        } else if (state is AuthInitial) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         } else {
+          // Both Unauthenticated and AuthLoading should show the SignInView.
+          // The SignInView handles its own loading state internally (disabling the button, showing a loader).
+          // Keeping it in the tree here prevents the email/password fields from being wiped.
           return const SignInView();
         }
       },
