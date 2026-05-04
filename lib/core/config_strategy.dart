@@ -45,7 +45,10 @@ class LocalConfigStrategy implements ConfigStrategy {
     if (url.isEmpty) url = _defaultBaseUrl;
 
     // Check if it already has a scheme (http://, https://, ws://, etc)
-    if (!url.contains('://')) {
+    if (url.contains('://')) {
+      // Replace existing scheme with the requested one
+      url = '$defaultScheme://${url.split('://')[1]}';
+    } else {
       url = '$defaultScheme://$url';
     }
 
@@ -82,10 +85,18 @@ class LocalConfigStrategy implements ConfigStrategy {
 
   @override
   String get wsEndpoint {
-    final baseUrl = const String.fromEnvironment(
+    var baseUrl = const String.fromEnvironment(
       'LOCAL_BASE_URL',
       defaultValue: _defaultBaseUrl,
-    );
+    ).trim();
+
+    // Strip /api if it exists to allow ws://host/ws/results instead of ws://host/api/ws/results
+    if (baseUrl.endsWith('/api')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 4);
+    } else if (baseUrl.endsWith('/api/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 5);
+    }
+
     return _buildUrl(baseUrl, 'ws', '/ws/results');
   }
 

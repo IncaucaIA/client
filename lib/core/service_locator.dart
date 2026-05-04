@@ -15,6 +15,7 @@ import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/data/firebase_auth_datasource_impl.dart';
 import '../features/auth/data/local_auth_datasource_impl.dart';
 import '../features/auth/data/auth_repository_impl.dart';
+import '../features/filters/notifications/bloc/notifications_bloc.dart';
 import '../features/auth/application/bloc/auth_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -62,6 +63,10 @@ void setupServiceLocator() {
 
   getIt.registerFactory<FilterListBloc>(
     () => FilterListBloc(filterRepository: getIt<FilterRepository>()),
+  );
+
+  getIt.registerFactory<NotificationsBloc>(
+    () => NotificationsBloc(filterRepository: getIt<FilterRepository>()),
   );
 
   getIt.registerFactory<AuthBloc>(

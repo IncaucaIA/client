@@ -4,6 +4,7 @@ import 'package:incauca_labs/core/service_locator.dart';
 import 'package:incauca_labs/features/auth/application/bloc/auth_bloc.dart';
 import 'package:incauca_labs/features/auth/application/bloc/auth_event.dart';
 import 'package:incauca_labs/features/filters/detail/views/filter_detail_view.dart';
+import 'package:incauca_labs/features/filters/notifications/views/notifications_view.dart';
 import '../bloc/filter_list_bloc.dart';
 import '../bloc/filter_list_event.dart';
 import '../bloc/filter_list_state.dart';
@@ -29,6 +30,8 @@ class _FilterListScaffold extends StatefulWidget {
 }
 
 class _FilterListScaffoldState extends State<_FilterListScaffold> {
+  int _currentIndex = 0;
+
   // Local filter form values
   int? _selectedQuality;
   DateTime? _startDate;
@@ -219,31 +222,32 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Filtros'),
+            title: Text(_currentIndex == 0 ? 'Registros' : 'Notificaciones'),
             actions: [
-              // Filter button with badge when active
-              Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.filter_list),
-                    tooltip: 'Filtrar',
-                    onPressed: () => _showFilterSheet(context),
-                  ),
-                  if (hasActiveFilters)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          shape: BoxShape.circle,
+              if (_currentIndex == 0) ...[
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.filter_list),
+                      tooltip: 'Filtrar',
+                      onPressed: () => _showFilterSheet(context),
+                    ),
+                    if (hasActiveFilters)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
+              ],
               IconButton(
                 icon: const Icon(Icons.logout),
                 onPressed: () =>
@@ -251,102 +255,127 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
               ),
             ],
           ),
-          body: Column(
+          body: IndexedStack(
+            index: _currentIndex,
             children: [
-              // Active filters chips
-              if (hasActiveFilters)
-                _ActiveFiltersBar(state: state),
-
-              // List
-              Expanded(
-                child: Builder(
-                  builder: (_) {
-                    if (state.isLoading && state.filters.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (state.error != null && state.filters.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.error_outline,
-                                size: 48, color: Colors.red),
-                            const SizedBox(height: 8),
-                            Text('Error: ${state.error}'),
-                            const SizedBox(height: 12),
-                            FilledButton(
-                              onPressed: () => context
-                                  .read<FilterListBloc>()
-                                  .add(FilterListRefreshRequested()),
-                              child: const Text('Reintentar'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    if (state.filters.isEmpty) {
-                      return const Center(
-                        child: Text('Sin resultados para los filtros aplicados.'),
-                      );
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: () async => context
-                          .read<FilterListBloc>()
-                          .add(FilterListRefreshRequested()),
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: state.filters.length,
-                        separatorBuilder: (_, __) =>
-                            const Divider(height: 1, indent: 72),
-                        itemBuilder: (context, index) {
-                          final filter = state.filters[index];
-                          return ListTile(
-                            leading: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(Icons.filter_alt,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer),
-                            ),
-                            title: Text('Filtro #${filter.id}'),
-                            subtitle: Text(
-                              'Impurezas: ${filter.impurityCount}  •  ${_formatDate(filter.processedAt)}',
-                            ),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      FilterDetailView(detail: filter),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+              _buildRecordsTab(state, hasActiveFilters),
+              const NotificationsView(),
+            ],
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.list_alt),
+                label: 'Registros',
               ),
-
-              // Pagination bar
-              if (state.total > 0)
-                _PaginationBar(state: state),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.notifications_none),
+                activeIcon: Icon(Icons.notifications),
+                label: 'Notificaciones',
+              ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRecordsTab(FilterListState state, bool hasActiveFilters) {
+    return Column(
+      children: [
+        // Active filters chips
+        if (hasActiveFilters)
+          _ActiveFiltersBar(state: state),
+
+        // List
+        Expanded(
+          child: Builder(
+            builder: (_) {
+              if (state.isLoading && state.filters.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state.error != null && state.filters.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.red),
+                      const SizedBox(height: 8),
+                      Text('Error: ${state.error}'),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        onPressed: () => context
+                            .read<FilterListBloc>()
+                            .add(FilterListRefreshRequested()),
+                        child: const Text('Reintentar'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (state.filters.isEmpty) {
+                return const Center(
+                  child: Text('Sin resultados para los filtros aplicados.'),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () async => context
+                    .read<FilterListBloc>()
+                    .add(FilterListRefreshRequested()),
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: state.filters.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, indent: 72),
+                  itemBuilder: (context, index) {
+                    final filter = state.filters[index];
+                    return ListTile(
+                      leading: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.filter_alt,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer),
+                      ),
+                      title: Text('Filtro #${filter.id}'),
+                      subtitle: Text(
+                        'Impurezas: ${filter.impurityCount}  •  ${_formatDate(filter.processedAt)}',
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                FilterDetailView(detail: filter),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Pagination bar
+        if (state.total > 0)
+          _PaginationBar(state: state),
+      ],
     );
   }
 }
