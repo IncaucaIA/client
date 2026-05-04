@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:incauca_labs/core/theme.dart';
 import 'core/service_locator.dart';
-import 'filters/upload/application/bloc/upload_bloc.dart';
-import 'filters/upload/application/upload_view.dart';
+import 'package:incauca_labs/features/filters/list/views/filter_list_view.dart';
 import 'features/auth/application/bloc/auth_bloc.dart';
 import 'features/auth/application/bloc/auth_event.dart';
 import 'features/auth/application/bloc/auth_state.dart';
@@ -33,9 +32,6 @@ class MainApp extends StatelessWidget {
         BlocProvider(
           create: (context) => getIt<AuthBloc>()..add(AuthStarted()),
         ),
-        BlocProvider(
-          create: (context) => getIt<UploadBloc>(),
-        ),
       ],
       child: MaterialApp(
         title: 'SIVIA',
@@ -54,7 +50,7 @@ class AuthWrapper extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is Authenticated) {
-          return const UploadView();
+          return const FilterListView();
         } else if (state is AuthInitial || state is AuthLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),

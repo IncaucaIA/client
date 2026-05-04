@@ -1,13 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-class AnalysisResult extends Equatable {
+class FilterDetail extends Equatable {
   final String id;
   final String imageUrl;
   final int impurityCount;
   final int fineBagasse;
   final int metal;
   final int sand;
-  // Efectos (pueden ser bool, int o double dependiendo de tu lógica, asumo double o int)
   final int firstEffect;
   final int secondEffect;
   final int thirdEffect;
@@ -15,7 +14,7 @@ class AnalysisResult extends Equatable {
   final int fifthEffect;
   final DateTime processedAt;
 
-  const AnalysisResult({
+  const FilterDetail({
     required this.id,
     required this.imageUrl,
     required this.impurityCount,
@@ -30,8 +29,7 @@ class AnalysisResult extends Equatable {
     required this.processedAt,
   });
 
-  // Factory para convertir el JSON feo en este objeto bonito
-  factory AnalysisResult.fromJson(Map<String, dynamic> json) {
+  factory FilterDetail.fromJson(Map<String, dynamic> json) {
     if (json.containsKey('impurityDetection')) {
       final impurityDetection = json['impurityDetection'] as Map<String, dynamic>? ?? {};
       final impurities = impurityDetection['impurities'] as List<dynamic>? ?? [];
@@ -44,7 +42,7 @@ class AnalysisResult extends Equatable {
         return (item['count'] as num?)?.toInt() ?? 0;
       }
 
-      return AnalysisResult(
+      return FilterDetail(
         id: json['imageId']?.toString() ?? '',
         imageUrl: json['imageUrl']?.toString() ?? '',
         impurityCount: (impurityDetection['totalParticles'] as num?)?.toInt() ?? 0,
@@ -64,10 +62,9 @@ class AnalysisResult extends Equatable {
     final aiList = json['aiResults'] as List? ?? [];
     final aiData = aiList.isNotEmpty ? aiList[0] : {};
 
-    return AnalysisResult(
+    return FilterDetail(
       id: json['id']?.toString() ?? '',
       imageUrl: imageObj['url']?.toString() ?? '',
-      // Manejo seguro de nulos y tipos numéricos
       impurityCount: (aiData['impurityCount'] as num?)?.toInt() ?? 0,
       fineBagasse: (aiData['fineBagasse'] as num?)?.toInt() ?? 0,
       metal: (aiData['metal'] as num?)?.toInt() ?? 0,

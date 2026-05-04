@@ -1,57 +1,43 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:incauca_labs/core/config.dart';
-import 'package:incauca_labs/filters/upload/domain/websocket_datasource.dart';
+import 'package:incauca_labs/features/filters/domain/websocket_datasource.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:http/http.dart' as http;
 
-class AzureWebSocketDatasourceImpl implements WebSocketDatasource {
+class LocalWebSocketDatasourceImpl implements WebSocketDatasource {
   final http.Client httpClient;
   WebSocketChannel? _channel;
   final StreamController<String> _messageController =
       StreamController<String>.broadcast();
   bool _isConnected = false;
 
-  AzureWebSocketDatasourceImpl({required this.httpClient});
+  LocalWebSocketDatasourceImpl({required this.httpClient});
 
   @override
   Future<void> connect() async {
     try {
-      final clientUrl = await _getClientUrl();
+      final clientUrl = AppConfig.wsEndpoint!;
       _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
       _isConnected = true;
 
       _channel!.stream.listen(
         (message) {
-          print('📩 Azure Web PubSub message: $message');
+          print('📩 Local WebSocket message: $message');
           _messageController.add(message.toString());
         },
         onError: (error) {
-          print('❌ Azure WebSocket error: $error');
+          print('❌ Local WebSocket error: $error');
           _isConnected = false;
         },
         onDone: () {
-          print('🔌 Azure WebSocket closed');
+          print('🔌 Local WebSocket closed');
           _isConnected = false;
         },
       );
-      print('✅ Connected to Azure Web PubSub');
+      print('✅ Connected to Local WebSocket');
     } catch (e) {
       _isConnected = false;
-      throw Exception('Failed to connect to Azure WebSocket: $e');
-    }
-  }
-
-  Future<String> _getClientUrl() async {
-    final response = await httpClient.get(
-      Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.negotiateEndpoint}'),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['url'] as String;
-    } else {
-      throw Exception('Failed to negotiate Azure WebSocket: ${response.statusCode}');
+      throw Exception('Failed to connect to Local WebSocket: $e');
     }
   }
 
