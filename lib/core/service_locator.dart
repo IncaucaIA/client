@@ -10,7 +10,7 @@ import '../features/filters/data/azure_websocket_datasource_impl.dart';
 import '../features/filters/data/local_websocket_datasource_impl.dart';
 import 'config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../features/auth/domain/firebase_auth_datasource.dart';
+import '../features/auth/domain/auth_datasource.dart';
 import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/data/firebase_auth_datasource_impl.dart';
 import '../features/auth/data/auth_repository_impl.dart';
@@ -38,7 +38,7 @@ void setupServiceLocator() {
   }
 
   // Auth Data sources
-  getIt.registerLazySingleton<FirebaseAuthDatasource>(
+  getIt.registerLazySingleton<AuthDatasource>(
     () => FirebaseAuthDatasourceImpl(getIt<FirebaseAuth>()),
   );
 
@@ -50,7 +50,7 @@ void setupServiceLocator() {
   );
 
   getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(getIt<FirebaseAuthDatasource>()),
+    () => AuthRepositoryImpl(getIt<AuthDatasource>()),
   );
 
   // BLoC - registered as factory to create new instances when needed

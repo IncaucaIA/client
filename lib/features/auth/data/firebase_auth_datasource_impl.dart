@@ -1,22 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import '../domain/firebase_auth_datasource.dart';
+import '../domain/auth_datasource.dart';
+import '../domain/entities/app_user.dart';
 
-class FirebaseAuthDatasourceImpl implements FirebaseAuthDatasource {
+class FirebaseAuthDatasourceImpl implements AuthDatasource {
   final FirebaseAuth _firebaseAuth;
 
   FirebaseAuthDatasourceImpl(this._firebaseAuth);
 
   @override
-  Stream<User?> sessionChanges() {
-    return _firebaseAuth.authStateChanges();
-  }
-
-  @override
-  Future<UserCredential> interactiveSignIn(String email, String password) {
-    return _firebaseAuth.signInWithEmailAndPassword(
+  Future<AppUser> signIn(String email, String password) async {
+    final credential = await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+    return AppUser.fromFirebaseUser(credential.user);
   }
 
   @override

@@ -17,9 +17,7 @@ class AppRouter {
       refreshListenable: GoRouterRefreshStream(appBloc.stream),
 
       routes: [
-        GoRoute(path: '/start', builder: (_, __) => const StartPage()),
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
-        GoRoute(path: '/home', builder: (_, __) => const HomePage()),
       ],
 
       redirect: (_, state) {
