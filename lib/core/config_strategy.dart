@@ -45,41 +45,6 @@ class CloudConfigStrategy implements ConfigStrategy {
   @override
   bool get isCloud => true;
 
-  @override
-  String get cosmosDbEndpoint => const String.fromEnvironment(
-        'COSMOS_DB_ENDPOINT',
-        defaultValue: 'https://incauca-cosmos-db-account-36104.documents.azure.com:443/',
-      );
-
-  @override
-  String get cosmosDbKey => const String.fromEnvironment(
-        'COSMOS_DB_KEY',
-        defaultValue: 'sQlZs4yIkQ2rPbbbqtVxfsokrDiHkSGfRmSgxIi0PvKXxcL7w3bw0xrWr9jNkHDRvMMpwok5K3zVACDb0DtSIQ==',
-      );
-
-  @override
-  String get databaseName => const String.fromEnvironment(
-        'COSMOS_DB_DATABASE',
-        defaultValue: 'incauca-cosmosdb-database',
-      );
-
-  @override
-  String get containerName => const String.fromEnvironment(
-        'COSMOS_DB_CONTAINER',
-        defaultValue: 'incauca-cosmosdb-container',
-      );
-
-  @override
-  String get storageAccountUrl => const String.fromEnvironment(
-        'STORAGE_ACCOUNT_URL',
-        defaultValue: 'https://storageaccount36104.blob.core.windows.net',
-      );
-
-  @override
-  String get storageContainerName => const String.fromEnvironment(
-        'STORAGE_CONTAINER_NAME',
-        defaultValue: 'images',
-      );
 }
 
 class LocalConfigStrategy implements ConfigStrategy {
@@ -117,22 +82,4 @@ class LocalConfigStrategy implements ConfigStrategy {
 
   @override
   bool get isCloud => false;
-
-  @override
-  String? get cosmosDbEndpoint => null;
-
-  @override
-  String? get cosmosDbKey => null;
-
-  @override
-  String? get databaseName => null;
-
-  @override
-  String? get containerName => null;
-
-  @override
-  String? get storageAccountUrl => null;
-
-  @override
-  String? get storageContainerName => null;
 }

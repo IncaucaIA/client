@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:incauca_labs/core/config.dart';
 import 'package:incauca_labs/features/filters/domain/websocket_datasource.dart';
@@ -43,8 +44,13 @@ class AzureWebSocketDatasourceImpl implements WebSocketDatasource {
   }
 
   Future<String> _getClientUrl() async {
+    final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+
     final response = await httpClient.get(
       Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.negotiateEndpoint}'),
+      headers: {
+        if (idToken != null) 'Authorization': 'Bearer $idToken',
+      },
     );
 
     if (response.statusCode == 200) {

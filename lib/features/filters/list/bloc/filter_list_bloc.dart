@@ -30,9 +30,9 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
 
     await emit.forEach(
       _filterRepository.watchFilters(),
-      onData: (filters) => state.copyWith(
+      onData: (paginatedResult) => state.copyWith(
         isLoading: false,
-        filters: filters,
+        filters: paginatedResult.items,
         error: null,
       ),
       onError: (error, stackTrace) => state.copyWith(
@@ -48,8 +48,8 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
   ) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final filters = await _filterRepository.getFilters();
-      emit(state.copyWith(isLoading: false, filters: filters, error: null));
+      final paginatedResult = await _filterRepository.getFilters();
+      emit(state.copyWith(isLoading: false, filters: paginatedResult.items, error: null));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
