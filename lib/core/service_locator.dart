@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../features/auth/domain/auth_datasource.dart';
 import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/data/firebase_auth_datasource_impl.dart';
+import '../features/auth/data/local_auth_datasource_impl.dart';
 import '../features/auth/data/auth_repository_impl.dart';
 import '../features/auth/application/bloc/auth_bloc.dart';
 
@@ -36,9 +37,15 @@ void setupServiceLocator() {
   }
 
   // Auth Data sources
-  getIt.registerLazySingleton<AuthDatasource>(
-    () => FirebaseAuthDatasourceImpl(getIt<FirebaseAuth>()),
-  );
+  if (AppConfig.isCloud) {
+    getIt.registerLazySingleton<AuthDatasource>(
+      () => FirebaseAuthDatasourceImpl(getIt<FirebaseAuth>()),
+    );
+  } else {
+    getIt.registerLazySingleton<AuthDatasource>(
+      () => LocalAuthDatasourceImpl(httpClient: getIt<http.Client>()),
+    );
+  }
 
   // Repository
   getIt.registerLazySingleton<FilterRepository>(
