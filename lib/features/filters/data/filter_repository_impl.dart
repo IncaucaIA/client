@@ -46,11 +46,12 @@ class FilterRepositoryImpl implements FilterRepository {
 
   @override
   Stream<List<FilterSummary>> watchFilters() async* {
-    final filters = await getFilters();
-    yield filters;
-    // Simulate real-time updates
-    await for (final _ in Stream.periodic(const Duration(seconds: 10))) {
-      yield filters;
+    // 1. Emit initial data
+    yield await getFilters();
+
+    // 2. Listen to notifications and yield updated data whenever a new message arrives
+    await for (final _ in listenToNotifications()) {
+      yield await getFilters();
     }
   }
 

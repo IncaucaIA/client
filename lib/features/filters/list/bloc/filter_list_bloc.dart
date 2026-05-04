@@ -19,6 +19,15 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
     Emitter<FilterListState> emit,
   ) async {
     emit(state.copyWith(isLoading: true));
+
+    // Connect to notifications when subscription starts
+    try {
+      await _filterRepository.connectToNotifications();
+    } catch (e) {
+      print('⚠️ Notification connection failed: $e');
+      // We continue anyway so we can at least show the initial data
+    }
+
     await emit.forEach(
       _filterRepository.watchFilters(),
       onData: (filters) => state.copyWith(
@@ -44,5 +53,11 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _filterRepository.disconnectFromNotifications();
+    return super.close();
   }
 }
