@@ -59,9 +59,6 @@ void setupServiceLocator() {
   );
 
   // BLoC - registered as factory to create new instances when needed
-  getIt.registerFactory<FilterDetailBloc>(
-    () => FilterDetailBloc(filterRepository: getIt<FilterRepository>()),
-  );
 
   getIt.registerFactory<FilterListBloc>(
     () => FilterListBloc(filterRepository: getIt<FilterRepository>()),

@@ -328,7 +328,7 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      FilterDetailView(filterId: filter.id),
+                                      FilterDetailView(detail: filter),
                                 ),
                               );
                             },

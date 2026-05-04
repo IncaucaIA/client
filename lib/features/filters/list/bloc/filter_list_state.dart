@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/models/filter_summary.dart';
+import '../../domain/models/filter_detail.dart';
 
 class FilterListState extends Equatable {
-  final List<FilterSummary> filters;
+  final List<FilterDetail> filters;
   final bool isLoading;
   final String? error;
 
@@ -39,7 +39,7 @@ class FilterListState extends Equatable {
   String? get endDateIso => endDate?.toIso8601String().split('T').first;
 
   FilterListState copyWith({
-    List<FilterSummary>? filters,
+    List<FilterDetail>? filters,
     bool? isLoading,
     String? error,
     int? currentPage,

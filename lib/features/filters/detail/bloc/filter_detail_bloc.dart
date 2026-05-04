@@ -19,8 +19,9 @@ class FilterDetailBloc extends Bloc<FilterDetailEvent, FilterDetailState> {
   ) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
-      final detail = await _filterRepository.getFilterDetail(event.filterId);
-      emit(state.copyWith(isLoading: false, detail: detail));
+      // getFilterDetail endpoint no longer exists. 
+      // Detail is now passed directly from the list state.
+      throw UnimplementedError('Detail is now passed directly from the list');
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }

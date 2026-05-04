@@ -28,27 +28,7 @@ class FilterRepositoryImpl implements FilterRepository {
   }
 
   @override
-  Future<FilterDetail> getFilterDetail(String filterId) async {
-    // Mock implementation for now
-    await Future.delayed(const Duration(seconds: 1));
-    return FilterDetail(
-      id: filterId,
-      imageUrl: 'https://via.placeholder.com/400',
-      impurityCount: 15,
-      other: 14,
-      metal: 1,
-      quality: 4,
-      firstEffect: 0,
-      secondEffect: 1,
-      thirdEffect: 2,
-      fourthEffect: 3,
-      fifthEffect: 4,
-      processedAt: DateTime.now(),
-    );
-  }
-
-  @override
-  Future<PaginatedResult<FilterSummary>> getFilters({
+  Future<PaginatedResult<FilterDetail>> getFilters({
     int limit = 10,
     int offset = 0,
     String? startDate,
@@ -77,9 +57,9 @@ class FilterRepositoryImpl implements FilterRepository {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      return PaginatedResult<FilterSummary>.fromJson(
+      return PaginatedResult<FilterDetail>.fromJson(
         json,
-        (item) => FilterSummary.fromJson(item),
+        (item) => FilterDetail.fromJson(item),
       );
     } else {
       throw Exception('Failed to fetch records: ${response.body}');
@@ -87,7 +67,7 @@ class FilterRepositoryImpl implements FilterRepository {
   }
 
   @override
-  Stream<PaginatedResult<FilterSummary>> watchFilters({
+  Stream<PaginatedResult<FilterDetail>> watchFilters({
     int limit = 10,
     int offset = 0,
     String? startDate,
