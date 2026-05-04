@@ -7,6 +7,9 @@ import 'package:incauca_labs/features/filters/domain/models/filter_detail.dart';
 import 'package:incauca_labs/features/filters/domain/models/paginated_result.dart';
 import 'package:incauca_labs/features/filters/domain/websocket_datasource.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:incauca_labs/core/config.dart';
+
 class MockHttpClient extends Mock implements http.Client {}
 class MockWebSocketDatasource extends Mock implements WebSocketDatasource {}
 
@@ -15,7 +18,10 @@ void main() {
   late MockHttpClient mockHttpClient;
   late MockWebSocketDatasource mockWebSocketDatasource;
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    AppConfig.initialize();
+    
     mockHttpClient = MockHttpClient();
     mockWebSocketDatasource = MockWebSocketDatasource();
     repository = FilterRepositoryImpl(
@@ -23,7 +29,6 @@ void main() {
       httpClient: mockHttpClient,
     );
 
-    // Register fallback for Uri if needed
     registerFallbackValue(Uri());
   });
 
@@ -62,7 +67,7 @@ void main() {
           .thenAnswer((_) async => http.Response('Error', 404));
 
       // Act & Assert
-      expect(() => repository.getFilters(), throwsException);
+      expect(repository.getFilters(), throwsA(isA<Exception>()));
     });
 
     test('listenToNotifications returns stream from datasource', () {
