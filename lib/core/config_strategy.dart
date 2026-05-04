@@ -5,16 +5,6 @@ abstract class ConfigStrategy {
   String? get wsEndpoint;
   String? get uploadEndpoint;
   bool get isCloud;
-
-  // Cosmos DB (Optional for Cloud)
-  String? get cosmosDbEndpoint;
-  String? get cosmosDbKey;
-  String? get databaseName;
-  String? get containerName;
-
-  // Storage (Optional for Cloud)
-  String? get storageAccountUrl;
-  String? get storageContainerName;
 }
 
 class CloudConfigStrategy implements ConfigStrategy {

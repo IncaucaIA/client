@@ -66,7 +66,7 @@ class FilterRepositoryImpl implements FilterRepository {
       if (quality != null) 'quality': quality.toString(),
     };
 
-    final uri = Uri.parse('$baseUrl/api/records').replace(queryParameters: queryParams);
+    final uri = Uri.parse('$baseUrl/records').replace(queryParameters: queryParams);
 
     final response = await _httpClient.get(
       uri,
