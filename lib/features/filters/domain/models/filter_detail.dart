@@ -4,28 +4,28 @@ class FilterDetail extends Equatable {
   final String id;
   final String imageUrl;
   final int impurityCount;
-  final int fineBagasse;
   final int metal;
-  final int sand;
+  final int other;
   final int firstEffect;
   final int secondEffect;
   final int thirdEffect;
   final int fourthEffect;
   final int fifthEffect;
+  final int quality;
   final DateTime processedAt;
 
   const FilterDetail({
     required this.id,
     required this.imageUrl,
     required this.impurityCount,
-    required this.fineBagasse,
     required this.metal,
-    required this.sand,
+    required this.other,
     required this.firstEffect,
     required this.secondEffect,
     required this.thirdEffect,
     required this.fourthEffect,
     required this.fifthEffect,
+    required this.quality,
     required this.processedAt,
   });
 
@@ -46,14 +46,14 @@ class FilterDetail extends Equatable {
         id: json['imageId']?.toString() ?? '',
         imageUrl: json['imageUrl']?.toString() ?? '',
         impurityCount: (impurityDetection['totalParticles'] as num?)?.toInt() ?? 0,
-        fineBagasse: getCount('fineBagasse'),
         metal: getCount('metal'),
-        sand: getCount('sand'),
+        other: getCount('other'),
         firstEffect: getCount('firstEffect'),
         secondEffect: getCount('secondEffect'),
         thirdEffect: getCount('thirdEffect'),
         fourthEffect: getCount('fourthEffect'),
         fifthEffect: getCount('fifthEffect'),
+        quality: (impurityDetection['quality'] as num?)?.toInt() ?? 0,
         processedAt: DateTime.tryParse(impurityDetection['evaluatedAt']?.toString() ?? '') ?? DateTime.now(),
       );
     }
@@ -66,18 +66,30 @@ class FilterDetail extends Equatable {
       id: json['id']?.toString() ?? '',
       imageUrl: imageObj['url']?.toString() ?? '',
       impurityCount: (aiData['impurityCount'] as num?)?.toInt() ?? 0,
-      fineBagasse: (aiData['fineBagasse'] as num?)?.toInt() ?? 0,
       metal: (aiData['metal'] as num?)?.toInt() ?? 0,
-      sand: (aiData['sand'] as num?)?.toInt() ?? 0,
+      other: (aiData['other'] as num?)?.toInt() ?? 0,
       firstEffect: (aiData['firstEffect'] as num?)?.toInt() ?? 0,
       secondEffect: (aiData['secondEffect'] as num?)?.toInt() ?? 0,
       thirdEffect: (aiData['thirdEffect'] as num?)?.toInt() ?? 0,
       fourthEffect: (aiData['fourthEffect'] as num?)?.toInt() ?? 0,
       fifthEffect: (aiData['fifthEffect'] as num?)?.toInt() ?? 0,
+      quality: (aiData['quality'] as num?)?.toInt() ?? 0,
       processedAt: DateTime.tryParse(imageObj['uploadedAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 
   @override
-  List<Object?> get props => [id, impurityCount, fineBagasse];
+  List<Object?> get props => [
+        id,
+        impurityCount,
+        metal,
+        other,
+        firstEffect,
+        secondEffect,
+        thirdEffect,
+        fourthEffect,
+        fifthEffect,
+        quality,
+        processedAt,
+      ];
 }
