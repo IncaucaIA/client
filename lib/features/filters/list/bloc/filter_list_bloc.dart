@@ -12,6 +12,9 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
         super(FilterListState.initial()) {
     on<FilterListSubscriptionRequested>(_onSubscriptionRequested);
     on<FilterListRefreshRequested>(_onRefreshRequested);
+    on<FilterListPageChanged>(_onPageChanged);
+    on<FilterListFiltersApplied>(_onFiltersApplied);
+    on<FilterListFiltersCleared>(_onFiltersCleared);
   }
 
   Future<void> _onSubscriptionRequested(
@@ -20,20 +23,25 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
   ) async {
     emit(state.copyWith(isLoading: true));
 
-    // Connect to notifications when subscription starts
     try {
       await _filterRepository.connectToNotifications();
     } catch (e) {
       print('⚠️ Notification connection failed: $e');
-      // We continue anyway so we can at least show the initial data
     }
 
     await emit.forEach(
-      _filterRepository.watchFilters(),
+      _filterRepository.watchFilters(
+        limit: FilterListState.pageSize,
+        offset: state.offset,
+        startDate: state.startDateIso,
+        endDate: state.endDateIso,
+        quality: state.quality,
+      ),
       onData: (paginatedResult) => state.copyWith(
         isLoading: false,
         filters: paginatedResult.items,
-        error: null,
+        total: paginatedResult.total,
+        clearError: true,
       ),
       onError: (error, stackTrace) => state.copyWith(
         isLoading: false,
@@ -46,10 +54,62 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
     FilterListRefreshRequested event,
     Emitter<FilterListState> emit,
   ) async {
+    await _fetchPage(emit);
+  }
+
+  Future<void> _onPageChanged(
+    FilterListPageChanged event,
+    Emitter<FilterListState> emit,
+  ) async {
+    emit(state.copyWith(currentPage: event.page));
+    await _fetchPage(emit);
+  }
+
+  Future<void> _onFiltersApplied(
+    FilterListFiltersApplied event,
+    Emitter<FilterListState> emit,
+  ) async {
+    emit(state.copyWith(
+      quality: event.quality,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      currentPage: 0,
+      clearQuality: event.quality == null,
+      clearStartDate: event.startDate == null,
+      clearEndDate: event.endDate == null,
+    ));
+    await _fetchPage(emit);
+  }
+
+  Future<void> _onFiltersCleared(
+    FilterListFiltersCleared event,
+    Emitter<FilterListState> emit,
+  ) async {
+    emit(state.copyWith(
+      currentPage: 0,
+      clearQuality: true,
+      clearStartDate: true,
+      clearEndDate: true,
+    ));
+    await _fetchPage(emit);
+  }
+
+  Future<void> _fetchPage(Emitter<FilterListState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final paginatedResult = await _filterRepository.getFilters();
-      emit(state.copyWith(isLoading: false, filters: paginatedResult.items, error: null));
+      final result = await _filterRepository.getFilters(
+        limit: FilterListState.pageSize,
+        offset: state.offset,
+        startDate: state.startDateIso,
+        endDate: state.endDateIso,
+        quality: state.quality,
+      );
+      emit(state.copyWith(
+        isLoading: false,
+        filters: result.items,
+        total: result.total,
+        clearError: true,
+      ));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
