@@ -5,16 +5,6 @@ abstract class ConfigStrategy {
   String? get wsEndpoint;
   String? get uploadEndpoint;
   bool get isCloud;
-
-  // Cosmos DB (Optional for Cloud)
-  String? get cosmosDbEndpoint;
-  String? get cosmosDbKey;
-  String? get databaseName;
-  String? get containerName;
-
-  // Storage (Optional for Cloud)
-  String? get storageAccountUrl;
-  String? get storageContainerName;
 }
 
 class CloudConfigStrategy implements ConfigStrategy {
@@ -45,45 +35,38 @@ class CloudConfigStrategy implements ConfigStrategy {
   @override
   bool get isCloud => true;
 
-  @override
-  String get cosmosDbEndpoint => const String.fromEnvironment(
-        'COSMOS_DB_ENDPOINT',
-        defaultValue: 'https://incauca-cosmos-db-account-36104.documents.azure.com:443/',
-      );
-
-  @override
-  String get cosmosDbKey => const String.fromEnvironment(
-        'COSMOS_DB_KEY',
-        defaultValue: 'sQlZs4yIkQ2rPbbbqtVxfsokrDiHkSGfRmSgxIi0PvKXxcL7w3bw0xrWr9jNkHDRvMMpwok5K3zVACDb0DtSIQ==',
-      );
-
-  @override
-  String get databaseName => const String.fromEnvironment(
-        'COSMOS_DB_DATABASE',
-        defaultValue: 'incauca-cosmosdb-database',
-      );
-
-  @override
-  String get containerName => const String.fromEnvironment(
-        'COSMOS_DB_CONTAINER',
-        defaultValue: 'incauca-cosmosdb-container',
-      );
-
-  @override
-  String get storageAccountUrl => const String.fromEnvironment(
-        'STORAGE_ACCOUNT_URL',
-        defaultValue: 'https://storageaccount36104.blob.core.windows.net',
-      );
-
-  @override
-  String get storageContainerName => const String.fromEnvironment(
-        'STORAGE_CONTAINER_NAME',
-        defaultValue: 'images',
-      );
 }
 
 class LocalConfigStrategy implements ConfigStrategy {
   static const String _defaultBaseUrl = '10.147.17.100:8000';
+
+  String _buildUrl(String baseUrl, String defaultScheme, String defaultPath) {
+    var url = baseUrl.trim();
+    if (url.isEmpty) url = _defaultBaseUrl;
+
+    // Check if it already has a scheme (http://, https://, ws://, etc)
+    if (url.contains('://')) {
+      // Replace existing scheme with the requested one
+      url = '$defaultScheme://${url.split('://')[1]}';
+    } else {
+      url = '$defaultScheme://$url';
+    }
+
+    // Remove trailing slash to avoid double slashes when joining
+    if (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Check if it already contains the specific path suffix (case-insensitive check)
+    final urlLower = url.toLowerCase();
+    final pathLower = defaultPath.toLowerCase();
+    
+    if (!urlLower.endsWith(pathLower) && !urlLower.contains('$pathLower/')) {
+      url = '$url$defaultPath';
+    }
+
+    return url;
+  }
 
   @override
   String get apiBaseUrl {
@@ -91,7 +74,7 @@ class LocalConfigStrategy implements ConfigStrategy {
       'LOCAL_BASE_URL',
       defaultValue: _defaultBaseUrl,
     );
-    return 'http://$baseUrl/api';
+    return _buildUrl(baseUrl, 'http', '/api');
   }
 
   @override
@@ -102,37 +85,30 @@ class LocalConfigStrategy implements ConfigStrategy {
 
   @override
   String get wsEndpoint {
-    final baseUrl = const String.fromEnvironment(
+    var baseUrl = const String.fromEnvironment(
       'LOCAL_BASE_URL',
       defaultValue: _defaultBaseUrl,
-    );
-    return 'ws://$baseUrl/ws/results';
+    ).trim();
+
+    // Strip /api if it exists to allow ws://host/ws/results instead of ws://host/api/ws/results
+    if (baseUrl.endsWith('/api')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 4);
+    } else if (baseUrl.endsWith('/api/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 5);
+    }
+
+    return _buildUrl(baseUrl, 'ws', '/ws/results');
   }
 
   @override
-  String get uploadEndpoint => const String.fromEnvironment(
-        'LOCAL_UPLOAD_ENDPOINT',
-        defaultValue: '/analysis/upload',
-      );
+  String get uploadEndpoint {
+    final endpoint = const String.fromEnvironment(
+      'LOCAL_UPLOAD_ENDPOINT',
+      defaultValue: '/analysis/upload',
+    );
+    return endpoint.startsWith('/') ? endpoint : '/$endpoint';
+  }
 
   @override
   bool get isCloud => false;
-
-  @override
-  String? get cosmosDbEndpoint => null;
-
-  @override
-  String? get cosmosDbKey => null;
-
-  @override
-  String? get databaseName => null;
-
-  @override
-  String? get containerName => null;
-
-  @override
-  String? get storageAccountUrl => null;
-
-  @override
-  String? get storageContainerName => null;
 }
