@@ -13,6 +13,8 @@ class FirebaseAuthDatasourceImpl implements AuthDatasource {
       email: email,
       password: password,
     );
+    final token = await credential.user?.getIdToken();
+    print('🔑 ID TOKEN: $token');
     return AppUser.fromFirebaseUser(credential.user);
   }
 
