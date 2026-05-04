@@ -14,13 +14,14 @@ class MockHttpClient extends Mock implements http.Client {}
 class MockWebSocketDatasource extends Mock implements WebSocketDatasource {}
 
 void main() {
+  AppConfig.initialize();
+
   late FilterRepositoryImpl repository;
   late MockHttpClient mockHttpClient;
   late MockWebSocketDatasource mockWebSocketDatasource;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    AppConfig.initialize();
     
     mockHttpClient = MockHttpClient();
     mockWebSocketDatasource = MockWebSocketDatasource();

@@ -56,3 +56,22 @@ La lógica de selección de entorno se encuentra en `lib/core/config.dart`, la c
 
 - **LocalConfigStrategy**: Utiliza `LOCAL_BASE_URL`.
 - **CloudConfigStrategy**: Utiliza las variables de Azure (`AZURE_API_BASE_URL`, etc.).
+
+## Testing
+
+### Ejecutar pruebas unitarias
+```bash
+flutter test test/unit-test
+```
+
+### Generar informe de cobertura
+```bash
+flutter test --coverage test/unit-test
+```
+
+## Generar informe detallado
+
+```bash
+dart pub global activate test_cov_console
+dart pub global run test_cov_console
+```
