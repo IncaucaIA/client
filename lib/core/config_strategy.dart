@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 abstract class ConfigStrategy {
   String get apiBaseUrl;
   String? get negotiateEndpoint;
@@ -39,8 +41,15 @@ class CloudConfigStrategy implements ConfigStrategy {
 
 class LocalConfigStrategy implements ConfigStrategy {
   static const String _defaultBaseUrl = '10.147.17.100:8000';
+  final String _baseUrl;
+  final String _uploadEndpointStr;
 
-  String _buildUrl(String baseUrl, String defaultScheme, String defaultPath) {
+  LocalConfigStrategy({String? baseUrl, String? uploadEndpoint})
+      : _baseUrl = baseUrl ?? const String.fromEnvironment('LOCAL_BASE_URL', defaultValue: _defaultBaseUrl),
+        _uploadEndpointStr = uploadEndpoint ?? const String.fromEnvironment('LOCAL_UPLOAD_ENDPOINT', defaultValue: '/analysis/upload');
+
+  @visibleForTesting
+  String buildUrl(String baseUrl, String defaultScheme, String defaultPath) {
     var url = baseUrl.trim();
     if (url.isEmpty) url = _defaultBaseUrl;
 
@@ -70,11 +79,7 @@ class LocalConfigStrategy implements ConfigStrategy {
 
   @override
   String get apiBaseUrl {
-    final baseUrl = const String.fromEnvironment(
-      'LOCAL_BASE_URL',
-      defaultValue: _defaultBaseUrl,
-    );
-    return _buildUrl(baseUrl, 'http', '/api');
+    return buildUrl(_baseUrl, 'http', '/api');
   }
 
   @override
@@ -85,10 +90,7 @@ class LocalConfigStrategy implements ConfigStrategy {
 
   @override
   String get wsEndpoint {
-    var baseUrl = const String.fromEnvironment(
-      'LOCAL_BASE_URL',
-      defaultValue: _defaultBaseUrl,
-    ).trim();
+    var baseUrl = _baseUrl.trim();
 
     // Strip /api if it exists to allow ws://host/ws/results instead of ws://host/api/ws/results
     if (baseUrl.endsWith('/api')) {
@@ -97,16 +99,12 @@ class LocalConfigStrategy implements ConfigStrategy {
       baseUrl = baseUrl.substring(0, baseUrl.length - 5);
     }
 
-    return _buildUrl(baseUrl, 'ws', '/ws/results');
+    return buildUrl(baseUrl, 'ws', '/ws/results');
   }
 
   @override
   String get uploadEndpoint {
-    final endpoint = const String.fromEnvironment(
-      'LOCAL_UPLOAD_ENDPOINT',
-      defaultValue: '/analysis/upload',
-    );
-    return endpoint.startsWith('/') ? endpoint : '/$endpoint';
+    return _uploadEndpointStr.startsWith('/') ? _uploadEndpointStr : '/$_uploadEndpointStr';
   }
 
   @override

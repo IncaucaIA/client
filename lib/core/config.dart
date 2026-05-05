@@ -1,12 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'config_strategy.dart';
 
 class AppConfig {
-  static final String _environment = const String.fromEnvironment(
+  static String _environment = const String.fromEnvironment(
     'ENVIRONMENT',
     defaultValue: 'local',
   ).toLowerCase();
 
-  static late final ConfigStrategy _strategy;
+  @visibleForTesting
+  static void setEnvironmentForTesting(String env) {
+    _environment = env;
+  }
+
+  static late ConfigStrategy _strategy;
 
   static void initialize() {
     print('🚀 Initializing AppConfig for environment: $_environment');
