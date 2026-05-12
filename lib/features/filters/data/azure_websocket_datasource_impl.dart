@@ -8,18 +8,29 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class AzureWebSocketDatasourceImpl implements WebSocketDatasource {
   final http.Client httpClient;
+  final WebSocketChannel Function(Uri uri)? channelFactory;
   WebSocketChannel? _channel;
   final StreamController<String> _messageController =
       StreamController<String>.broadcast();
   bool _isConnected = false;
 
-  AzureWebSocketDatasourceImpl({required this.httpClient});
+  final Future<String?> Function()? tokenProvider;
+
+  AzureWebSocketDatasourceImpl({
+    required this.httpClient,
+    this.channelFactory,
+    this.tokenProvider,
+  });
 
   @override
   Future<void> connect() async {
     try {
       final clientUrl = await _getClientUrl();
-      _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
+      if (channelFactory != null) {
+        _channel = channelFactory!(Uri.parse(clientUrl));
+      } else {
+        _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
+      }
       _isConnected = true;
 
       _channel!.stream.listen(
@@ -44,7 +55,12 @@ class AzureWebSocketDatasourceImpl implements WebSocketDatasource {
   }
 
   Future<String> _getClientUrl() async {
-    final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+    final String? idToken;
+    if (tokenProvider != null) {
+      idToken = await tokenProvider!();
+    } else {
+      idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+    }
 
     final response = await httpClient.get(
       Uri.parse('${AppConfig.apiBaseUrl}${AppConfig.negotiateEndpoint}'),

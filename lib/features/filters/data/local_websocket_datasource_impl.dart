@@ -8,12 +8,17 @@ import 'package:http/http.dart' as http;
 
 class LocalWebSocketDatasourceImpl implements WebSocketDatasource {
   final http.Client httpClient;
+  final WebSocketChannel Function(Uri uri, Map<String, dynamic>? headers)?
+      channelFactory;
   WebSocketChannel? _channel;
   final StreamController<String> _messageController =
       StreamController<String>.broadcast();
   bool _isConnected = false;
 
-  LocalWebSocketDatasourceImpl({required this.httpClient});
+  LocalWebSocketDatasourceImpl({
+    required this.httpClient,
+    this.channelFactory,
+  });
 
   @override
   Future<void> connect() async {
@@ -21,12 +26,18 @@ class LocalWebSocketDatasourceImpl implements WebSocketDatasource {
       final clientUrl = AppConfig.wsEndpoint!;
       final token = await LocalAuthDatasourceImpl.getToken();
 
-      _channel = IOWebSocketChannel.connect(
-        Uri.parse(clientUrl),
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+      final headers = {
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      
+      if (channelFactory != null) {
+        _channel = channelFactory!(Uri.parse(clientUrl), headers);
+      } else {
+        _channel = IOWebSocketChannel.connect(
+          Uri.parse(clientUrl),
+          headers: headers,
+        );
+      }
       _isConnected = true;
 
       _channel!.stream.listen(
