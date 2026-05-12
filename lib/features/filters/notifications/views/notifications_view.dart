@@ -45,7 +45,7 @@ class NotificationsView extends StatelessWidget {
                 ),
                 title: Text('Nuevo Resultado #${detail.id}'),
                 subtitle: Text(
-                  'Impurezas: ${detail.impurityCount} • Calidad: ${detail.quality}',
+                  'Impurezas: ${detail.impurityCount}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {

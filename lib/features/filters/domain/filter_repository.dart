@@ -8,14 +8,12 @@ abstract class FilterRepository {
     int offset = 0,
     String? startDate,
     String? endDate,
-    int? quality,
   });
   Stream<PaginatedResult<FilterDetail>> watchFilters({
     int limit = 10,
     int offset = 0,
     String? startDate,
     String? endDate,
-    int? quality,
   });
   Stream<String> listenToNotifications();
   Future<void> connectToNotifications();

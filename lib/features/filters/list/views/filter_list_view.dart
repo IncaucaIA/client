@@ -33,11 +33,8 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
   int _currentIndex = 0;
 
   // Local filter form values
-  int? _selectedQuality;
   DateTime? _startDate;
   DateTime? _endDate;
-
-  static const _qualityOptions = [1, 2, 3, 4, 5];
 
   Future<void> _pickDate(BuildContext context, {required bool isStart}) async {
     final now = DateTime.now();
@@ -60,7 +57,6 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
 
   void _applyFilters(BuildContext context) {
     context.read<FilterListBloc>().add(FilterListFiltersApplied(
-          quality: _selectedQuality,
           startDate: _startDate,
           endDate: _endDate,
         ));
@@ -69,7 +65,6 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
 
   void _clearFilters(BuildContext context) {
     setState(() {
-      _selectedQuality = null;
       _startDate = null;
       _endDate = null;
     });
@@ -81,7 +76,6 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
     // Sync local state with bloc state
     final blocState = context.read<FilterListBloc>().state;
     setState(() {
-      _selectedQuality = blocState.quality;
       _startDate = blocState.startDate;
       _endDate = blocState.endDate;
     });
@@ -120,27 +114,6 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
                   ),
                   const Divider(),
                   const SizedBox(height: 8),
-
-                  // Quality filter
-                  Text('Calidad',
-                      style: Theme.of(sheetContext).textTheme.titleSmall),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: _qualityOptions.map((q) {
-                      final selected = _selectedQuality == q;
-                      return ChoiceChip(
-                        label: Text('$q'),
-                        selected: selected,
-                        onSelected: (val) {
-                          setSheetState(() {
-                            _selectedQuality = val ? q : null;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
 
                   // Date range
                   Text('Rango de fechas',
@@ -218,7 +191,7 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
     return BlocBuilder<FilterListBloc, FilterListState>(
       builder: (context, state) {
         final hasActiveFilters =
-            state.quality != null || state.startDate != null || state.endDate != null;
+            state.startDate != null || state.endDate != null;
 
         return Scaffold(
           appBar: AppBar(
@@ -397,17 +370,6 @@ class _ActiveFiltersBar extends StatelessWidget {
         spacing: 6,
         runSpacing: 4,
         children: [
-          if (state.quality != null)
-            Chip(
-              label: Text('Calidad: ${state.quality}'),
-              deleteIcon: const Icon(Icons.close, size: 14),
-              onDeleted: () => context.read<FilterListBloc>().add(
-                    FilterListFiltersApplied(
-                      startDate: state.startDate,
-                      endDate: state.endDate,
-                    ),
-                  ),
-            ),
           if (state.startDate != null)
             Chip(
               label: Text(
@@ -415,7 +377,6 @@ class _ActiveFiltersBar extends StatelessWidget {
               deleteIcon: const Icon(Icons.close, size: 14),
               onDeleted: () => context.read<FilterListBloc>().add(
                     FilterListFiltersApplied(
-                      quality: state.quality,
                       endDate: state.endDate,
                     ),
                   ),
@@ -427,7 +388,6 @@ class _ActiveFiltersBar extends StatelessWidget {
               deleteIcon: const Icon(Icons.close, size: 14),
               onDeleted: () => context.read<FilterListBloc>().add(
                     FilterListFiltersApplied(
-                      quality: state.quality,
                       startDate: state.startDate,
                     ),
                   ),

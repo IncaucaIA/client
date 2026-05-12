@@ -15,8 +15,7 @@ void main() {
           'metal': 2,
           'other': 3,
           'firstEffect': 1,
-          'secondEffect': 1,
-          'thirdEffect': 1,
+          'secondAndThirdEffect': 2,
           'fourthEffect': 1,
           'fifthEffect': 1,
           'quality': 80,
@@ -34,6 +33,7 @@ void main() {
         'impurities': [
           {'type': 'metal', 'count': 5},
           {'type': 'other', 'count': 15},
+          {'type': 'secondAndThirdEffect', 'count': 10},
         ],
       },
     };
@@ -46,6 +46,7 @@ void main() {
       expect(detail.impurityCount, 10);
       expect(detail.metal, 2);
       expect(detail.other, 3);
+      expect(detail.secondAndThirdEffect, 2);
       expect(detail.quality, 80);
       expect(detail.processedAt, DateTime.parse('2024-05-04T10:00:00Z'));
     });
@@ -58,6 +59,7 @@ void main() {
       expect(detail.impurityCount, 20);
       expect(detail.metal, 5);
       expect(detail.other, 15);
+      expect(detail.secondAndThirdEffect, 10);
       expect(detail.quality, 90);
       expect(detail.processedAt, DateTime.parse('2024-05-04T11:00:00Z'));
     });

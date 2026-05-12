@@ -12,7 +12,6 @@ class FilterListState extends Equatable {
   static const int pageSize = 5;
 
   // Filters
-  final int? quality;
   final DateTime? startDate;
   final DateTime? endDate;
 
@@ -22,7 +21,6 @@ class FilterListState extends Equatable {
     this.error,
     this.currentPage = 0,
     this.total = 0,
-    this.quality,
     this.startDate,
     this.endDate,
   });
@@ -44,10 +42,8 @@ class FilterListState extends Equatable {
     String? error,
     int? currentPage,
     int? total,
-    int? quality,
     DateTime? startDate,
     DateTime? endDate,
-    bool clearQuality = false,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearError = false,
@@ -58,7 +54,6 @@ class FilterListState extends Equatable {
       error: clearError ? null : (error ?? this.error),
       currentPage: currentPage ?? this.currentPage,
       total: total ?? this.total,
-      quality: clearQuality ? null : (quality ?? this.quality),
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
       endDate: clearEndDate ? null : (endDate ?? this.endDate),
     );
@@ -66,5 +61,5 @@ class FilterListState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [filters, isLoading, error, currentPage, total, quality, startDate, endDate];
+      [filters, isLoading, error, currentPage, total, startDate, endDate];
 }

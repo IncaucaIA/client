@@ -35,7 +35,6 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
         offset: state.offset,
         startDate: state.startDateIso,
         endDate: state.endDateIso,
-        quality: state.quality,
       ),
       onData: (paginatedResult) => state.copyWith(
         isLoading: false,
@@ -70,11 +69,9 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
     Emitter<FilterListState> emit,
   ) async {
     emit(state.copyWith(
-      quality: event.quality,
       startDate: event.startDate,
       endDate: event.endDate,
       currentPage: 0,
-      clearQuality: event.quality == null,
       clearStartDate: event.startDate == null,
       clearEndDate: event.endDate == null,
     ));
@@ -87,7 +84,6 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
   ) async {
     emit(state.copyWith(
       currentPage: 0,
-      clearQuality: true,
       clearStartDate: true,
       clearEndDate: true,
     ));
@@ -102,7 +98,6 @@ class FilterListBloc extends Bloc<FilterListEvent, FilterListState> {
         offset: state.offset,
         startDate: state.startDateIso,
         endDate: state.endDateIso,
-        quality: state.quality,
       );
       emit(state.copyWith(
         isLoading: false,

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'entities/app_user.dart';
 
 abstract class AuthDatasource {

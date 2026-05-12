@@ -33,7 +33,6 @@ class FilterRepositoryImpl implements FilterRepository {
     int offset = 0,
     String? startDate,
     String? endDate,
-    int? quality,
   }) async {
     final token = await _getToken();
     final baseUrl = AppConfig.apiBaseUrl;
@@ -43,7 +42,6 @@ class FilterRepositoryImpl implements FilterRepository {
       'offset': offset.toString(),
       if (startDate != null) 'startDate': startDate,
       if (endDate != null) 'endDate': endDate,
-      if (quality != null) 'quality': quality.toString(),
     };
 
     final uri = Uri.parse('$baseUrl/records').replace(queryParameters: queryParams);
@@ -72,7 +70,6 @@ class FilterRepositoryImpl implements FilterRepository {
     int offset = 0,
     String? startDate,
     String? endDate,
-    int? quality,
   }) async* {
     // 1. Emit initial data
     yield await getFilters(
@@ -80,7 +77,6 @@ class FilterRepositoryImpl implements FilterRepository {
       offset: offset,
       startDate: startDate,
       endDate: endDate,
-      quality: quality,
     );
 
     // 2. Listen to notifications and yield updated data whenever a new message arrives
@@ -90,7 +86,6 @@ class FilterRepositoryImpl implements FilterRepository {
         offset: offset,
         startDate: startDate,
         endDate: endDate,
-        quality: quality,
       );
     }
   }

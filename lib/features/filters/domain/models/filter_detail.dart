@@ -7,8 +7,7 @@ class FilterDetail extends Equatable {
   final int metal;
   final int other;
   final int firstEffect;
-  final int secondEffect;
-  final int thirdEffect;
+  final int secondAndThirdEffect;
   final int fourthEffect;
   final int fifthEffect;
   final int quality;
@@ -21,8 +20,7 @@ class FilterDetail extends Equatable {
     required this.metal,
     required this.other,
     required this.firstEffect,
-    required this.secondEffect,
-    required this.thirdEffect,
+    required this.secondAndThirdEffect,
     required this.fourthEffect,
     required this.fifthEffect,
     required this.quality,
@@ -49,8 +47,7 @@ class FilterDetail extends Equatable {
         metal: getCount('metal'),
         other: getCount('other'),
         firstEffect: getCount('firstEffect'),
-        secondEffect: getCount('secondEffect'),
-        thirdEffect: getCount('thirdEffect'),
+        secondAndThirdEffect: getCount('secondAndThirdEffect'),
         fourthEffect: getCount('fourthEffect'),
         fifthEffect: getCount('fifthEffect'),
         quality: (impurityDetection['quality'] as num?)?.toInt() ?? 0,
@@ -69,8 +66,7 @@ class FilterDetail extends Equatable {
       metal: (aiData['metal'] as num?)?.toInt() ?? 0,
       other: (aiData['other'] as num?)?.toInt() ?? 0,
       firstEffect: (aiData['firstEffect'] as num?)?.toInt() ?? 0,
-      secondEffect: (aiData['secondEffect'] as num?)?.toInt() ?? 0,
-      thirdEffect: (aiData['thirdEffect'] as num?)?.toInt() ?? 0,
+      secondAndThirdEffect: (aiData['secondAndThirdEffect'] as num?)?.toInt() ?? 0,
       fourthEffect: (aiData['fourthEffect'] as num?)?.toInt() ?? 0,
       fifthEffect: (aiData['fifthEffect'] as num?)?.toInt() ?? 0,
       quality: (aiData['quality'] as num?)?.toInt() ?? 0,
@@ -85,8 +81,7 @@ class FilterDetail extends Equatable {
         metal,
         other,
         firstEffect,
-        secondEffect,
-        thirdEffect,
+        secondAndThirdEffect,
         fourthEffect,
         fifthEffect,
         quality,

@@ -20,18 +20,16 @@ class FilterListPageChanged extends FilterListEvent {
 }
 
 class FilterListFiltersApplied extends FilterListEvent {
-  final int? quality;
   final DateTime? startDate;
   final DateTime? endDate;
 
   const FilterListFiltersApplied({
-    this.quality,
     this.startDate,
     this.endDate,
   });
 
   @override
-  List<Object?> get props => [quality, startDate, endDate];
+  List<Object?> get props => [startDate, endDate];
 }
 
 class FilterListFiltersCleared extends FilterListEvent {}
