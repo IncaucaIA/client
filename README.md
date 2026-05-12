@@ -71,7 +71,15 @@ flutter test --coverage
 
 ## Generar informe detallado (después de correr test con cobertura)
 
+Para un informe limpio que ignore archivos de dominio e interfaces:
+
 ```bash
-dart pub global activate test_cov_console
-dart pub global run test_cov_console
+# 1. Asegúrate de haber corrido los tests con cobertura primero
+flutter test --coverage
+
+# 2. Filtrar archivos innecesarios (dominio, firebase_options, etc.)
+dart scripts/filter_coverage.dart
+
+# 3. Generar el reporte en consola
+dart pub global run test_cov_console -i
 ```
