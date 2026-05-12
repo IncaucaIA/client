@@ -61,12 +61,12 @@ La lógica de selección de entorno se encuentra en `lib/core/config.dart`, la c
 
 ### Ejecutar pruebas unitarias
 ```bash
-flutter test test/unit-test
+flutter test
 ```
 
 ### Correr test con informe de cobertura
 ```bash
-flutter test --coverage test/unit-test
+flutter test --coverage
 ```
 
 ## Generar informe detallado (después de correr test con cobertura)
