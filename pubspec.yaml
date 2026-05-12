@@ -20,11 +20,17 @@ dependencies:
   crypto: ^3.0.3
   flutter_launcher_icons: ^0.14.4
   mime: ^2.0.0
+  firebase_core: ^3.4.0
+  firebase_auth: ^5.2.0
+  shared_preferences: ^2.2.2
+  formz: ^0.8.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  mocktail: ^1.0.3
+  bloc_test: ^9.1.7
 
 flutter_launcher_icons:
   android: true
