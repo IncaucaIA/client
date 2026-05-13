@@ -18,11 +18,12 @@ class FilterSummary extends Equatable {
     if (json['aiResults'] != null && (json['aiResults'] as List).isNotEmpty) {
       impurityCount = json['aiResults'][0]['impurityCount'] as int;
     }
+    final imageObj = json['image'] as Map<String, dynamic>? ?? {};
     return FilterSummary(
       id: json['id'].toString(),
-      imageUrl: json['image']['url'] as String,
+      imageUrl: imageObj['url']?.toString() ?? '',
       impurityCount: impurityCount,
-      processedAt: DateTime.parse(json['image']['uploadedAt']),
+      processedAt: DateTime.tryParse(imageObj['uploadedAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

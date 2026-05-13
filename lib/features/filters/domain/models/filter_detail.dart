@@ -40,9 +40,11 @@ class FilterDetail extends Equatable {
         return (item['count'] as num?)?.toInt() ?? 0;
       }
 
+      final imageObj = json['image'] as Map<String, dynamic>? ?? {};
+      
       return FilterDetail(
-        id: json['imageId']?.toString() ?? '',
-        imageUrl: json['imageUrl']?.toString() ?? '',
+        id: (json['imageId'] ?? json['id'])?.toString() ?? '',
+        imageUrl: (imageObj['url'] ?? json['imageUrl'])?.toString() ?? '',
         impurityCount: (impurityDetection['totalParticles'] as num?)?.toInt() ?? 0,
         metal: getCount('metal'),
         other: getCount('other'),
