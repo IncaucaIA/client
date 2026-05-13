@@ -6,6 +6,8 @@ import 'package:incauca_labs/features/filters/notifications/bloc/notifications_b
 import 'package:incauca_labs/features/filters/notifications/bloc/notifications_event.dart';
 import 'package:incauca_labs/features/filters/notifications/bloc/notifications_state.dart';
 
+import 'package:incauca_labs/core/config.dart';
+
 class MockFilterRepository extends Mock implements FilterRepository {}
 
 void main() {
@@ -14,6 +16,7 @@ void main() {
   late StreamController<String> wsController;
 
   setUp(() {
+    AppConfig.initialize();
     mockRepository = MockFilterRepository();
     wsController = StreamController<String>.broadcast();
     when(() => mockRepository.listenToNotifications()).thenAnswer((_) => wsController.stream);

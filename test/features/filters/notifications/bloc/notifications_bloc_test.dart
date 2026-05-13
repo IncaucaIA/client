@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:incauca_labs/core/config.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:incauca_labs/features/filters/domain/filter_repository.dart';
 import 'package:incauca_labs/features/filters/domain/models/filter_detail.dart';
@@ -30,6 +32,7 @@ void main() {
   );
 
   setUp(() {
+    AppConfig.initialize();
     filterRepository = MockFilterRepository();
     controller = StreamController<String>.broadcast();
     when(() => filterRepository.listenToNotifications())
@@ -71,6 +74,33 @@ void main() {
       },
       wait: const Duration(milliseconds: 100),
       expect: () => [],
+    );
+    
+    blocTest<NotificationsBloc, NotificationsState>(
+      'handles nested "data" and double-encoded JSON correctly',
+      build: () => notificationsBloc,
+      act: (bloc) async {
+        bloc.add(NotificationsStarted());
+        await Future.delayed(Duration.zero);
+        // Azure Web PubSub double-encoded nested message
+        final innerJson = jsonEncode({
+          "id": "1",
+          "image": {"url": "url1", "uploadedAt": "2024-05-04T00:00:00.000"},
+          "aiResults": [{"impurityCount": 5, "metal": 1, "other": 2, "firstEffect": 1, "secondAndThirdEffect": 2, "fourthEffect": 1, "fifthEffect": 1, "quality": 90}]
+        });
+        final nestedJson = jsonEncode({
+          "type": "message",
+          "data": {
+            "type": "new_record",
+            "data": innerJson
+          }
+        });
+        controller.add(nestedJson);
+      },
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        NotificationsState(notifications: [testDetail]),
+      ],
     );
 
     blocTest<NotificationsBloc, NotificationsState>(

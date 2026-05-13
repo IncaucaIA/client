@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:incauca_labs/core/config.dart';
 import 'package:incauca_labs/features/filters/domain/models/filter_detail.dart';
 
 void main() {
+  setUpAll(() {
+    AppConfig.initialize();
+  });
+
   group('FilterDetail', () {
     final mockJson = {
       'id': '123',
