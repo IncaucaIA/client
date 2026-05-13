@@ -28,7 +28,7 @@ try {
     Start-Sleep -Seconds 5
 
     # 3. Correr Tests de Flutter
-    Write-Host "Paso 3: Corriendo tests de integración en Flutter..." -ForegroundColor Yellow
+    Write-Host "Paso 3: Corriendo tests e2e en Flutter..." -ForegroundColor Yellow
     Push-Location $ClientDir
     try {
         flutter test integration_test/app_e2e_test.dart --dart-define-from-file=.env.test

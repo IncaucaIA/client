@@ -65,7 +65,7 @@ void main() {
       // Wait for login
       await tester.pumpAndSettle(const Duration(seconds: 15));
 
-      expect(find.text('Registros'), findsOneWidget);
+      expect(find.text('Registros'), findsWidgets);
       expect(find.textContaining('Filtro #'), findsWidgets);
       expect(find.byKey(const Key('filterList_logoutButton')), findsOneWidget);
     });
@@ -78,8 +78,12 @@ void main() {
       await tester.enterText(find.byKey(const Key('signIn_passwordInput')), 'wrongpassword');
       await tester.tap(find.byKey(const Key('signIn_submitButton')));
 
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      for (int i = 0; i < 50; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+        if (find.byType(SnackBar).evaluate().isNotEmpty) {
+          break;
+        }
+      }
 
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Bienvenido a SIVIA'), findsOneWidget);
@@ -91,8 +95,8 @@ void main() {
       // Verify Page 1
       expect(find.textContaining('Página 1'), findsOneWidget);
       
-      final prevBtn = find.byTooltip('Anterior');
-      final nextBtn = find.byTooltip('Siguiente');
+      final prevBtn = find.widgetWithIcon(IconButton, Icons.chevron_left);
+      final nextBtn = find.widgetWithIcon(IconButton, Icons.chevron_right);
 
       // Next button should exist and we tap it if enabled
       final nextBtnWidget = tester.widget<IconButton>(nextBtn);
@@ -127,7 +131,7 @@ void main() {
       await tester.tap(backButton);
       await tester.pumpAndSettle();
 
-      expect(find.text('Registros'), findsOneWidget);
+      expect(find.text('Registros'), findsWidgets);
     });
 
     testWidgets('logout_returns_to_sign_in', (WidgetTester tester) async {

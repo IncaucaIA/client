@@ -89,3 +89,32 @@ Estas pruebas cubren las fronteras entre BLoCs, Repositorios y Datasources.
 ```bash
 flutter test test/integration
 ```
+
+### Ejecutar pruebas End-to-End (E2E)
+Estas pruebas validan el flujo completo desde la interfaz de usuario hasta el Backend (integración real).
+
+#### Opción A: Automatizado (Recomendado para Local)
+Existe un script de PowerShell que se encarga de preparar el backend (seed), levantarlo en el puerto 8001 y ejecutar los tests de Flutter automáticamente.
+
+> [!IMPORTANT]
+> Debes tener un emulador de Android abierto o un dispositivo físico conectado antes de ejecutar el script.
+
+```powershell
+./run_e2e.ps1
+```
+
+#### Opción B: Manual
+Si ya tienes el backend corriendo manualmente en otro terminal, puedes ejecutar los tests directamente:
+
+**Android / iOS:**
+```bash
+flutter test integration_test/app_e2e_test.dart --dart-define-from-file=.env
+```
+
+**Web (Chrome):**
+```bash
+flutter test integration_test/app_e2e_test.dart -d chrome --dart-define-from-file=.env
+```
+
+> [!TIP]
+> Puedes usar la bandera `--dart-define-from-file=.env.test` si deseas usar credenciales o URLs específicas para el entorno de pruebas.
