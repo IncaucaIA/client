@@ -15,15 +15,21 @@ class FilterDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Imagen superior
-            Image.network(
-              detail.imageUrl,
-              height: 380,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 380,
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.broken_image, size: 80),
+            GestureDetector(
+              onTap: () => _showFullScreenImage(context),
+              child: Hero(
+                tag: 'image_${detail.id}',
+                child: Image.network(
+                  detail.imageUrl,
+                  height: 380,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 380,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.broken_image, size: 80),
+                  ),
+                ),
               ),
             ),
 
@@ -56,6 +62,38 @@ class FilterDetailView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showFullScreenImage(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        extendBodyBehindAppBar: true,
+        body: Center(
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Hero(
+              tag: 'image_${detail.id}',
+              child: Image.network(
+                detail.imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image,
+                  size: 80,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
   }
 
   Widget _buildRow(String label, String value, {bool isBold = false}) {
