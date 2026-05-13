@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:incauca_labs/core/config.dart';
 
 class FilterDetail extends Equatable {
   final String id;
@@ -44,7 +45,7 @@ class FilterDetail extends Equatable {
       
       return FilterDetail(
         id: (json['imageId'] ?? json['id'])?.toString() ?? '',
-        imageUrl: (imageObj['url'] ?? json['imageUrl'])?.toString() ?? '',
+        imageUrl: _fixLocalUrl((imageObj['url'] ?? json['imageUrl'])?.toString() ?? ''),
         impurityCount: (impurityDetection['totalParticles'] as num?)?.toInt() ?? 0,
         metal: getCount('metal'),
         other: getCount('other'),
@@ -63,7 +64,7 @@ class FilterDetail extends Equatable {
 
     return FilterDetail(
       id: json['id']?.toString() ?? '',
-      imageUrl: imageObj['url']?.toString() ?? '',
+      imageUrl: _fixLocalUrl(imageObj['url']?.toString() ?? ''),
       impurityCount: (aiData['impurityCount'] as num?)?.toInt() ?? 0,
       metal: (aiData['metal'] as num?)?.toInt() ?? 0,
       other: (aiData['other'] as num?)?.toInt() ?? 0,
@@ -74,6 +75,23 @@ class FilterDetail extends Equatable {
       quality: (aiData['quality'] as num?)?.toInt() ?? 0,
       processedAt: DateTime.tryParse(imageObj['uploadedAt']?.toString() ?? '') ?? DateTime.now(),
     );
+  }
+
+  static String _fixLocalUrl(String url) {
+    if (AppConfig.isCloud) return url;
+    if (url.isEmpty) return url;
+
+    try {
+      final uri = Uri.parse(url);
+      if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+        final baseUri = Uri.parse(AppConfig.apiBaseUrl);
+        return uri.replace(
+          host: baseUri.host,
+          port: baseUri.port,
+        ).toString();
+      }
+    } catch (_) {}
+    return url;
   }
 
   @override

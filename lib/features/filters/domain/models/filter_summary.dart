@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:incauca_labs/core/config.dart';
 
 class FilterSummary extends Equatable {
   final String id;
@@ -21,10 +22,29 @@ class FilterSummary extends Equatable {
     final imageObj = json['image'] as Map<String, dynamic>? ?? {};
     return FilterSummary(
       id: json['id'].toString(),
-      imageUrl: imageObj['url']?.toString() ?? '',
+      imageUrl: _fixLocalUrl(imageObj['url']?.toString() ?? ''),
       impurityCount: impurityCount,
       processedAt: DateTime.tryParse(imageObj['uploadedAt']?.toString() ?? '') ?? DateTime.now(),
     );
+  }
+
+  static String _fixLocalUrl(String url) {
+    // Solo aplicar en entorno local
+    if (AppConfig.isCloud) return url;
+    if (url.isEmpty) return url;
+
+    try {
+      final uri = Uri.parse(url);
+      // Reemplazar localhost/127.0.0.1 por el host configurado en LOCAL_BASE_URL
+      if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+        final baseUri = Uri.parse(AppConfig.apiBaseUrl);
+        return uri.replace(
+          host: baseUri.host,
+          port: baseUri.port,
+        ).toString();
+      }
+    } catch (_) {}
+    return url;
   }
 
   @override
