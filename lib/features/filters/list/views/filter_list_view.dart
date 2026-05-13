@@ -201,6 +201,7 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
                 Stack(
                   children: [
                     IconButton(
+                      key: const Key('filterList_filterButton'),
                       icon: const Icon(Icons.filter_list),
                       tooltip: 'Filtrar',
                       onPressed: () => _showFilterSheet(context),
@@ -222,6 +223,7 @@ class _FilterListScaffoldState extends State<_FilterListScaffold> {
                 ),
               ],
               IconButton(
+                key: const Key('filterList_logoutButton'),
                 icon: const Icon(Icons.logout),
                 onPressed: () =>
                     context.read<AuthBloc>().add(SignOutRequested()),

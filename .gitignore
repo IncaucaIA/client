@@ -3,6 +3,7 @@
 
 ### dotenv ###
 .env
+.env.e2e.*
 
 # End of https://www.toptal.com/developers/gitignore/api/dotenv
 

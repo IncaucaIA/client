@@ -78,6 +78,7 @@ class _SignInViewState extends State<SignInView> {
                     
                     // Email Field
                     TextFormField(
+                      key: const Key('signIn_emailInput'),
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
@@ -104,6 +105,7 @@ class _SignInViewState extends State<SignInView> {
                     
                     // Password Field
                     TextFormField(
+                      key: const Key('signIn_passwordInput'),
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
@@ -143,6 +145,7 @@ class _SignInViewState extends State<SignInView> {
                       builder: (context, state) {
                         final isLoading = state is AuthLoading;
                         return ElevatedButton(
+                          key: const Key('signIn_submitButton'),
                           onPressed: isLoading
                               ? null
                               : () {
