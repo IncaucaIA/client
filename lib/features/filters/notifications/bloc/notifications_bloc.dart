@@ -23,10 +23,16 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     _subscription?.cancel();
     _subscription = _filterRepository.listenToNotifications().listen((data) {
       try {
-        final json = jsonDecode(data);
-        // Backend sends the full DTO
-        final detail = FilterDetail.fromJson(json);
-        add(NotificationReceived(detail));
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) {
+          // Si el mensaje viene envuelto en un objeto con 'type' y 'data'
+          final recordData = decoded.containsKey('data') ? decoded['data'] : decoded;
+          
+          if (recordData is Map<String, dynamic>) {
+            final detail = FilterDetail.fromJson(recordData);
+            add(NotificationReceived(detail));
+          }
+        }
       } catch (e) {
         print('❌ Error parsing notification: $e');
       }

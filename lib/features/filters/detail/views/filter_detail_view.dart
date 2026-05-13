@@ -24,6 +24,21 @@ class FilterDetailView extends StatelessWidget {
                   height: 380,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      height: 380,
+                      color: Colors.grey.shade100,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) => Container(
                     height: 380,
                     color: Colors.grey.shade200,
@@ -83,6 +98,18 @@ class FilterDetailView extends StatelessWidget {
               child: Image.network(
                 detail.imageUrl,
                 fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.broken_image,
                   size: 80,
