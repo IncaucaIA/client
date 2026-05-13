@@ -13,13 +13,18 @@ import 'package:incauca_labs/features/filters/domain/websocket_datasource.dart';
 class FilterRepositoryImpl implements FilterRepository {
   final WebSocketDatasource webSocketDataSource;
   final http.Client _httpClient;
+  final Future<String?> Function()? tokenProvider;
 
   FilterRepositoryImpl({
     required this.webSocketDataSource,
     http.Client? httpClient,
+    this.tokenProvider,
   }) : _httpClient = httpClient ?? http.Client();
 
   Future<String?> _getToken() async {
+    if (tokenProvider != null) {
+      return await tokenProvider!();
+    }
     if (AppConfig.isCloud) {
       return await FirebaseAuth.instance.currentUser?.getIdToken();
     } else {

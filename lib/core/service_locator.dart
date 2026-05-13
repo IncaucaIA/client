@@ -52,6 +52,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<FilterRepository>(
     () => FilterRepositoryImpl(
       webSocketDataSource: getIt<WebSocketDatasource>(),
+      httpClient: getIt<http.Client>(),
     ),
   );
 

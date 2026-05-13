@@ -64,6 +64,12 @@ La lógica de selección de entorno se encuentra en `lib/core/config.dart`, la c
 flutter test
 ```
 
+### Ejecutar pruebas de integración
+Estas pruebas cubren las fronteras entre BLoCs, Repositorios y Datasources.
+```bash
+flutter test test/integration
+```
+
 ### Correr test con informe de cobertura
 ```bash
 flutter test --coverage
