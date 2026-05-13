@@ -23,15 +23,33 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     _subscription?.cancel();
     _subscription = _filterRepository.listenToNotifications().listen((data) {
       try {
-        final decoded = jsonDecode(data);
-        if (decoded is Map<String, dynamic>) {
-          // Si el mensaje viene envuelto en un objeto con 'type' y 'data'
-          final recordData = decoded.containsKey('data') ? decoded['data'] : decoded;
-          
-          if (recordData is Map<String, dynamic>) {
+        var decoded = jsonDecode(data);
+        if (decoded is String) {
+          try { decoded = jsonDecode(decoded); } catch (_) {}
+        }
+
+        dynamic recordData = decoded;
+        
+        // Extraer recursivamente si el mensaje viene envuelto en múltiples capas de 'data'
+        while (recordData is Map<String, dynamic> && recordData.containsKey('data')) {
+          var innerData = recordData['data'];
+          if (innerData is String) {
+            try { innerData = jsonDecode(innerData); } catch (_) {}
+          }
+          recordData = innerData;
+        }
+
+        if (recordData is Map<String, dynamic>) {
+          // Verificamos que contenga claves típicas de nuestro modelo para evitar procesar mensajes de control
+          if (recordData.containsKey('id') || recordData.containsKey('imageId') || recordData.containsKey('aiResults') || recordData.containsKey('image')) {
             final detail = FilterDetail.fromJson(recordData);
             add(NotificationReceived(detail));
+            print('✅ Notification successfully parsed and added: ${detail.id}');
+          } else {
+            print('⚠️ El mensaje no parece un registro de filtro: $recordData');
           }
+        } else {
+          print('⚠️ No se pudo extraer un Map válido del mensaje. Tipo final: ${recordData.runtimeType}');
         }
       } catch (e) {
         print('❌ Error parsing notification: $e');
