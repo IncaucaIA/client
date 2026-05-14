@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -33,7 +30,7 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
-        return windows;
+        return web;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -63,13 +60,13 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.incaucaLabs',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBdXrwbg6eKadF-lYfarD___HOKhjX4MOk',
-    appId: '1:355624963520:web:4feaab74127bdc1625cc25',
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCgHPFZa8k4wgFRIPAx3S4lPicuzlT7bc4',
+    appId: '1:355624963520:web:0bb4f6842606b05025cc25',
     messagingSenderId: '355624963520',
     projectId: 'sivia-284f1',
     authDomain: 'sivia-284f1.firebaseapp.com',
     storageBucket: 'sivia-284f1.firebasestorage.app',
-    measurementId: 'G-QTQQ3X08HY',
+    measurementId: 'G-073HDLTZL0',
   );
 }

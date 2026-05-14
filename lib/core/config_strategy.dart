@@ -45,8 +45,15 @@ class LocalConfigStrategy implements ConfigStrategy {
   final String _uploadEndpointStr;
 
   LocalConfigStrategy({String? baseUrl, String? uploadEndpoint})
-      : _baseUrl = baseUrl ?? const String.fromEnvironment('LOCAL_BASE_URL', defaultValue: _defaultBaseUrl),
+      : _baseUrl = _adjustBaseUrl(baseUrl ?? const String.fromEnvironment('LOCAL_BASE_URL', defaultValue: _defaultBaseUrl)),
         _uploadEndpointStr = uploadEndpoint ?? const String.fromEnvironment('LOCAL_UPLOAD_ENDPOINT', defaultValue: '/analysis/upload');
+
+  static String _adjustBaseUrl(String url) {
+    if (kIsWeb && (url.contains('10.0.2.2'))) {
+      return url.replaceAll('10.0.2.2', 'localhost');
+    }
+    return url;
+  }
 
   @visibleForTesting
   String buildUrl(String baseUrl, String defaultScheme, String defaultPath) {
