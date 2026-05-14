@@ -1,12 +1,15 @@
 # run_e2e.ps1
-# Script para correr los tests E2E en múltiples entornos y plataformas
+# Script para correr los tests E2E en multiples entornos y plataformas
+
+# Guardar ubicacion actual para volver al final
+Push-Location $PSScriptRoot
 
 $ClientDir = $PSScriptRoot
 $BackendDir = Resolve-Path "$ClientDir\..\backend"
 $env:ENVIRONMENT = "testing"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-Write-Host "--- Iniciando Automatización E2E Multi-Entorno ---" -ForegroundColor Cyan
+Write-Host "--- Iniciando Automatizacion E2E Multi-Entorno ---" -ForegroundColor Cyan
 
 # 1. Preparar Backend Local (Seed Database)
 Write-Host "Paso 1: Poblando base de datos de test en el backend..." -ForegroundColor Yellow
@@ -26,7 +29,7 @@ try {
     Write-Host "Esperando a que el servidor responda..." -ForegroundColor Gray
     Start-Sleep -Seconds 5
 
-    # 3. Definir Configuración de Tests
+    # 3. Definir Configuracion de Tests
     $TestConfigs = @(
         @{ Name="Local (Android Emulator)"; EnvFile=".env.test"; Device="emulator-5554"; Type="test" },
         @{ Name="Cloud (Android Emulator)"; EnvFile=".env.test.cloud"; Device="emulator-5554"; Type="test" },
@@ -36,7 +39,8 @@ try {
 
     Push-Location $ClientDir
     foreach ($config in $TestConfigs) {
-        Write-Host "`n>>> Corriendo Test: $($config.Name) <<<" -ForegroundColor Green
+        $testName = $config.Name
+        Write-Host "`n--- Corriendo Test: $testName ---" -ForegroundColor Green
         
         if (-not (Test-Path $config.EnvFile)) {
             Write-Host "ADVERTENCIA: Archivo $($config.EnvFile) no encontrado. Saltando..." -ForegroundColor Yellow
@@ -44,29 +48,39 @@ try {
         }
 
         if ($config.Type -eq "drive") {
-            # Web requires flutter drive
-            $args = @("drive", "--driver=test_driver/integration_test.dart", "--target=integration_test/app_e2e_test.dart", "--dart-define-from-file=$($config.EnvFile)", "-d", $config.Device)
+            # Web requiere flutter drive con puerto fijo para CORS
+            $args = @("drive", "--driver=test_driver/integration_test.dart", "--target=integration_test/app_e2e_test.dart", "--dart-define-from-file=$($config.EnvFile)", "-d", $config.Device, "--no-pub", "--web-port=5000")
             & flutter @args
         } else {
-            # Mobile works with flutter test
+            # Mobile funciona con flutter test
             $args = @("test", "integration_test/app_e2e_test.dart", "--dart-define-from-file=$($config.EnvFile)", "-d", $config.Device)
             & flutter @args
         }
         
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "FALLO: $($config.Name)" -ForegroundColor Red
+            Write-Host "FALLO: $testName" -ForegroundColor Red
         } else {
-            Write-Host "EXITO: $($config.Name)" -ForegroundColor Green
+            Write-Host "EXITO: $testName" -ForegroundColor Green
         }
     }
 }
 finally {
-    # 4. Limpieza (Cerrar servidor)
-    Write-Host "`nPaso 4: Cerrando servidor backend..." -ForegroundColor Cyan
+    # 4. Limpieza (Cerrar procesos)
+    Write-Host "`nPaso 4: Limpieza de procesos..." -ForegroundColor Cyan
+    
     if ($BackendProcess) {
+        Write-Host "Cerrando backend..." -ForegroundColor Gray
         Stop-Process -Id $BackendProcess.Id -Force -ErrorAction SilentlyContinue
     }
-    Pop-Location
+    
+    if ($ChromeProcess) {
+        Write-Host "Cerrando ChromeDriver..." -ForegroundColor Gray
+        Stop-Process -Id $ChromeProcess.Id -Force -ErrorAction SilentlyContinue
+    }
+
+    # Volver al directorio original (Client)
+    Pop-Location -ErrorAction SilentlyContinue
+    Pop-Location -ErrorAction SilentlyContinue
 }
 
-Write-Host "`nProceso multi-entorno completado." -ForegroundColor Green
+Write-Host "Proceso multi-entorno completado." -ForegroundColor Green

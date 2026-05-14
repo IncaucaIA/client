@@ -33,10 +33,7 @@ class LocalWebSocketDatasourceImpl implements WebSocketDatasource {
       if (channelFactory != null) {
         _channel = channelFactory!(Uri.parse(clientUrl), headers);
       } else {
-        _channel = IOWebSocketChannel.connect(
-          Uri.parse(clientUrl),
-          headers: headers,
-        );
+        _channel = WebSocketChannel.connect(Uri.parse(clientUrl));
       }
       _isConnected = true;
 

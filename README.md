@@ -97,7 +97,13 @@ Estas pruebas validan el flujo completo desde la interfaz de usuario hasta el Ba
 Existe un script de PowerShell que se encarga de preparar el backend (seed), levantarlo en el puerto 8001 y ejecutar los tests de Flutter automáticamente.
 
 > [!IMPORTANT]
-> Debes tener un emulador de Android abierto o un dispositivo físico conectado antes de ejecutar el script.
+> **Requisitos Previos:**
+> 1. **Android:** Debes tener un emulador abierto o dispositivo físico conectado.
+> 2. **Web:** Debes tener `chromedriver` ejecutándose en el puerto 4444.
+>    ```powershell
+>    # En una terminal aparte:
+>    npx chromedriver --port=4444
+>    ```
 
 ```powershell
 ./run_e2e.ps1

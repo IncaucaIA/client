@@ -43,25 +43,27 @@ void main() {
     final submitBtn = find.byKey(const Key('signIn_submitButton'));
 
     await tester.enterText(emailField, E2EConfig.testEmail);
-    await tester.pump(); // Allow state update
     await tester.enterText(passwordField, E2EConfig.testPassword);
-    await tester.pump(); // Allow state update
-    
-    // Small delay for Web keyboard stability
-    await Future.delayed(const Duration(milliseconds: 500));
-    
     await tester.tap(submitBtn);
-    
-    // Wait for transition and API response
-    for(int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(seconds: 1));
-    }
-    await tester.pumpAndSettle();
+
+    // Increase timeout for API call
+    await tester.pumpAndSettle(const Duration(seconds: 15));
   }
 
   group('E2E Tests', () {
     testWidgets('login_success_shows_filter_list', (WidgetTester tester) async {
-      await login(tester);
+      await tester.pumpWidget(const MainApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bienvenido a SIVIA'), findsOneWidget);
+      expect(find.byKey(const Key('signIn_submitButton')), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('signIn_emailInput')), E2EConfig.testEmail);
+      await tester.enterText(find.byKey(const Key('signIn_passwordInput')), E2EConfig.testPassword);
+      await tester.tap(find.byKey(const Key('signIn_submitButton')));
+
+      // Wait for login
+      await tester.pumpAndSettle(const Duration(seconds: 15));
 
       expect(find.text('Registros'), findsWidgets);
       expect(find.textContaining('Filtro #'), findsWidgets);
@@ -90,16 +92,8 @@ void main() {
     testWidgets('filter_list_pagination_navigation', (WidgetTester tester) async {
       await login(tester);
 
-      // Verify Page 1 with explicit wait
-      bool found = false;
-      for(int i = 0; i < 15; i++) {
-        await tester.pump(const Duration(milliseconds: 500));
-        if (find.textContaining('Página 1').evaluate().isNotEmpty) {
-          found = true;
-          break;
-        }
-      }
-      expect(found, isTrue, reason: "No se encontró el texto 'Página 1' tras el login.");
+      // Verify Page 1
+      expect(find.textContaining('Página 1'), findsOneWidget);
       
       final prevBtn = find.widgetWithIcon(IconButton, Icons.chevron_left);
       final nextBtn = find.widgetWithIcon(IconButton, Icons.chevron_right);

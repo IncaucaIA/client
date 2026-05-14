@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:incauca_labs/core/colors.dart';
 import '../bloc/auth_bloc.dart';
@@ -80,7 +81,7 @@ class _SignInViewState extends State<SignInView> {
                     TextFormField(
                       key: const Key('signIn_emailInput'),
                       controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      keyboardType: kIsWeb ? TextInputType.text : TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: 'Correo Electrónico',
                         prefixIcon: const Icon(Icons.email_outlined),
